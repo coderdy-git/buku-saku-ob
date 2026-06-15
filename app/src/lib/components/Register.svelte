@@ -10,13 +10,29 @@
   let loading = false;
 
   async function handleRegister() {
-    if (!name || !phone || !pin) {
-      errorMsg = 'Seluruh data wajib diisi';
+    // 1. Validasi Input
+    if (!name) {
+      errorMsg = 'Nama Lengkap wajib diisi';
       return;
     }
-    
-    if (pin.length !== 4) {
-      errorMsg = 'PIN wajib berupa 4 digit angka';
+    if (name.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(name)) {
+      errorMsg = 'Nama minimal 3 karakter & hanya mengandung huruf';
+      return;
+    }
+    if (!phone) {
+      errorMsg = 'Nomor WhatsApp wajib diisi';
+      return;
+    }
+    if (!/^\d{10,13}$/.test(phone)) {
+      errorMsg = 'Nomor WhatsApp tidak valid (harus 10-13 digit angka)';
+      return;
+    }
+    if (!pin) {
+      errorMsg = 'PIN wajib diisi';
+      return;
+    }
+    if (!/^\d{6}$/.test(pin)) {
+      errorMsg = 'PIN baru harus berupa 6 digit angka';
       return;
     }
     
@@ -27,8 +43,8 @@
     setTimeout(() => {
       loading = false;
       const userData = {
-        nama: name,
-        telepon: phone,
+        nama: name.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '),
+        telepon: '62' + phone,
         verified: false // Memicu verifikasi OTP
       };
       localStorage.setItem('ob_session', JSON.stringify(userData));
@@ -44,7 +60,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
-      <span class="text-sm">Kembali</span>
+      <span class="text-sm font-semibold">Kembali</span>
     </button>
 
     <h2 class="text-2xl font-bold tracking-tight text-slate-950">Daftar Akun</h2>
@@ -78,21 +94,21 @@
       </div>
 
       <div>
-        <label for="pin" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">4-Digit PIN Baru</label>
+        <label for="pin" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">6-Digit PIN Baru</label>
         <input 
           type="password" 
           id="pin" 
           inputmode="numeric"
           pattern="[0-9]*"
-          maxlength="4"
+          maxlength="6"
           bind:value={pin}
-          placeholder="••••" 
+          placeholder="••••••" 
           class="w-full px-4 py-3 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:bg-white tracking-[0.5em] text-center transition-all font-bold"
         />
       </div>
 
       {#if errorMsg}
-        <div class="p-3 bg-red-50 text-red-600 rounded-lg text-xs font-medium border border-red-100 mt-1">
+        <div class="p-3 bg-red-50 text-red-600 rounded-lg text-xs font-semibold border border-red-100 mt-1">
           {errorMsg}
         </div>
       {/if}

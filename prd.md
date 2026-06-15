@@ -16,8 +16,8 @@
 ### 3.1 Onboarding & Verification Flow
 - **Splash Screen:** Visual welcome page with animated loading bar. Automatically checks for active local user sessions to redirect logged-in users directly to the dashboard.
 - **Landing Page:** Minimalist welcome screen outlining primary value propositions with buttons for Login and Registration.
-- **Login Screen:** Input fields for WhatsApp Phone Number and 4-digit PIN.
-- **Register Screen:** Input fields for Full Name, WhatsApp Phone Number, and a new 4-digit PIN. Registers the user both as an app operator and adds them to the employee list for internal bookkeeping.
+- **Login Screen:** Input fields for WhatsApp Phone Number and 6-digit PIN.
+- **Register Screen:** Input fields for Full Name, WhatsApp Phone Number, and a new 6-digit PIN. Registers the user both as an app operator and adds them to the employee list for internal bookkeeping.
 - **OTP Verification Screen:** Triggers immediately after login or registration if the WhatsApp number is not verified. Demands a 4-digit code (simulated code: `1234`) with explicit instructions.
 
 ### 3.2 Canteen Order Management (Daftar Pesanan)
