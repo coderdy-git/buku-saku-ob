@@ -17,42 +17,9 @@ Aplikasi mobile-first, **offline-ready PWA (Progressive Web App)** yang dirancan
 5. **Offline-First Storage:** Menggunakan **IndexedDB (Dexie.js)** di browser lokal sehingga aplikasi dibuka instan dan dapat digunakan 100% tanpa sinyal internet.
 6. **Cloud Real-time Synchronization:** Otomatis mengirimkan data lokal ke cloud database **Supabase (PostgreSQL)** begitu HP mendeteksi adanya sinyal internet.
 
----
-
-## 🛠️ Langkah Instalasi / Kloning Repositori
-
-### 1. Prasyarat Sistem
-* [Node.js](https://nodejs.org/) (Versi 18 ke atas)
-* npm (Bawaan Node.js)
-
-### 2. Kloning Repositori
-Jalankan perintah ini di terminal Anda:
-```bash
-git clone https://github.com/coderdy-git/buku-saku-ob.git
-cd buku-saku-ob
-```
-
-### 3. Setup Variabel Lingkungan (.env)
-Buat file baru bernama `.env` di dalam folder `/app`:
-```bash
-touch app/.env
-```
-Isi dengan kredensial project Supabase Anda:
-```env
-VITE_SUPABASE_URL=https://your-supabase-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-### 4. Instalasi Dependensi & Menjalankan Aplikasi
-Masuk ke subfolder `/app` dan jalankan development server:
-```bash
-cd app
-npm install
-npm run dev
-```
-Buka tautan lokal yang tampil di terminal Anda (biasanya `http://localhost:5173/` atau `http://localhost:5177/`).
 
 ---
+
 
 ## 🏗️ Struktur Proyek
 ```text
