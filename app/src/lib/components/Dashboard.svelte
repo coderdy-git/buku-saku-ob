@@ -26,6 +26,7 @@
   } from '../dbHelper';
 
   export let user = { nama: 'Operator', telepon: '', verified: true };
+  export let showInstallBtn = false;
   
   let activeTab = 'orders'; // orders | cashbook | calculator | attendance
   let orderTabFilter = 'belum'; // belum | selesai
@@ -402,6 +403,8 @@
   <!-- Header -->
   <Header 
     userName={user.nama}
+    showInstallBtn={showInstallBtn}
+    on:installPwa={() => dispatch('installPwa')}
     on:logout={handleLogout}
   />
 

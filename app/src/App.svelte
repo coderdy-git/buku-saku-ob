@@ -18,6 +18,10 @@
     verified: false
   };
 
+  // State PWA Install Prompt
+  let deferredPrompt = null;
+  let showInstallBtn = false;
+
   // Pemicu perpindahan halaman
   function navigate(page) {
     currentPage = page;
@@ -43,10 +47,34 @@
     navigate('landing');
   }
 
-  // Splash Screen Timeout
+  // Menjalankan instalasi PWA
+  async function triggerPwaInstall() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      deferredPrompt = null;
+      showInstallBtn = false;
+    }
+  }
+
+  // Splash Screen Timeout & Listeners
   onMount(() => {
     // Daftarkan listener logout global
     window.addEventListener('logout', handleLogout);
+
+    // Tangkap event instalasi PWA
+    const handleInstallPrompt = (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      showInstallBtn = true;
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
+    // Cek jika app sudah diinstall / berjalan standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      showInstallBtn = false;
+    }
 
     // Memeriksa sesi lokal jika sudah ada
     const savedUser = localStorage.getItem('ob_session');
@@ -66,6 +94,7 @@
 
     return () => {
       window.removeEventListener('logout', handleLogout);
+      window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
   });
 </script>
@@ -147,6 +176,8 @@
     <div in:fade={{ duration: 200 }} class="flex-grow flex flex-col">
       <Dashboard 
         user={user}
+        showInstallBtn={showInstallBtn}
+        on:installPwa={triggerPwaInstall}
       />
     </div>
   {/if}

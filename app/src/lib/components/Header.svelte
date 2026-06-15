@@ -1,11 +1,12 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   // Import Icon resmi dari Lucide
-  import { LogOut } from '@lucide/svelte';
+  import { LogOut, Download } from '@lucide/svelte';
   
   const dispatch = createEventDispatcher();
   
   export let userName = 'Operator';
+  export let showInstallBtn = false;
 </script>
 
 <!-- Header Aplikasi -->
@@ -25,6 +26,16 @@
   </div>
 
   <div class="flex items-center gap-2">
+    {#if showInstallBtn}
+      <button 
+        on:click={() => dispatch('installPwa')} 
+        title="Instal Aplikasi ke HP"
+        class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-100 rounded-lg text-[10px] font-bold flex items-center gap-1 transition focus:outline-none"
+      >
+        <Download class="w-3.5 h-3.5" /> Instal App
+      </button>
+    {/if}
+
     <button 
       on:click={() => dispatch('logout')} 
       title="Keluar Akun"
@@ -34,3 +45,4 @@
     </button>
   </div>
 </header>
+
