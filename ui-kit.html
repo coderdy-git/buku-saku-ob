@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Kit & Template - Buku Saku OB</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration for customized styles -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: '#4F46E5', // Indigo
+            success: '#10B981', // Hijau
+            danger: '#EF4444',  // Merah
+            warning: '#F59E0B', // Kuning/Oranye
+            obBg: '#F3F4F6',
+            obCard: '#FFFFFF',
+            obText: '#111827',
+            obTextSec: '#6B7280'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c7d2fe;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #818cf8;
+    }
+
+    /* Dynamic Scaling for Phone Frame based on screen height */
+    @media (max-height: 900px) {
+      .phone-scale {
+        transform: scale(0.9);
+        transform-origin: top center;
+        margin-bottom: -75px;
+      }
+    }
+    @media (max-height: 800px) {
+      .phone-scale {
+        transform: scale(0.8);
+        transform-origin: top center;
+        margin-bottom: -150px;
+      }
+    }
+    @media (max-height: 700px) {
+      .phone-scale {
+        transform: scale(0.7);
+        transform-origin: top center;
+        margin-bottom: -225px;
+      }
+    }
+    @media (max-height: 600px) {
+      .phone-scale {
+        transform: scale(0.6);
+        transform-origin: top center;
+        margin-bottom: -300px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen antialiased font-sans pb-12">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <i data-lucide="pocket" class="text-indigo-400 w-8 h-8"></i>
+          Buku Saku OB <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">UI Kit & Simulator</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Panduan desain visual, komponen, dan interaksi aplikasi mobile-first Office Boy</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700">Offline-First Stack</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- LEFT PANEL: DESIGN SYSTEM & UI TOKENS (7 COLS) -->
+    <section class="lg:col-span-7 space-y-8">
+      
+      <!-- Palette & Typography Card -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 backdrop-blur">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="palette" class="text-indigo-400"></i>
+          1. Color Palette & Typography
+        </h2>
+        
+        <!-- Palette Colors -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex flex-col gap-2">
+            <div class="w-full h-12 rounded-lg bg-primary shadow-lg"></div>
+            <div class="text-xs font-semibold text-slate-200">Primary</div>
+            <div class="text-[10px] text-indigo-300 font-mono">#4F46E5 (Indigo)</div>
+          </div>
+          
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex flex-col gap-2">
+            <div class="w-full h-12 rounded-lg bg-success shadow-lg"></div>
+            <div class="text-xs font-semibold text-slate-200">Success</div>
+            <div class="text-[10px] text-emerald-400 font-mono">#10B981 (Hijau)</div>
+          </div>
+
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex flex-col gap-2">
+            <div class="w-full h-12 rounded-lg bg-danger shadow-lg"></div>
+            <div class="text-xs font-semibold text-slate-200">Danger</div>
+            <div class="text-[10px] text-red-400 font-mono">#EF4444 (Merah)</div>
+          </div>
+
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex flex-col gap-2">
+            <div class="w-full h-12 rounded-lg bg-warning shadow-lg"></div>
+            <div class="text-xs font-semibold text-slate-200">Warning</div>
+            <div class="text-[10px] text-amber-400 font-mono">#F59E0B (Oranye)</div>
+          </div>
+        </div>
+
+        <!-- Typography Demo -->
+        <div class="border-t border-slate-700/60 pt-4 space-y-3">
+          <h3 class="text-sm font-semibold text-slate-400">Typography Scale</h3>
+          <div class="space-y-2">
+            <div class="flex items-baseline justify-between gap-4">
+              <span class="text-xs font-mono text-slate-500">Heading/Uang (2xl/3xl)</span>
+              <span class="text-3xl font-extrabold text-white">Rp 2.450.000</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4">
+              <span class="text-xs font-mono text-slate-500">Teks Utama (Base)</span>
+              <span class="text-base text-slate-200">Nasi Goreng Spesial Pak Slamet</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4">
+              <span class="text-xs font-mono text-slate-500">Teks Sekunder (Sm)</span>
+              <span class="text-sm text-slate-400">Hari ini, 14:30 WIB • Belum Dibayar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive UI Components Spec -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 backdrop-blur">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="layers" class="text-indigo-400"></i>
+          2. Master Components Catalog
+        </h2>
+
+        <!-- Cards Spec -->
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Card Styles (Light Mode Theme for App Context)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <!-- Order Card (Yellow/Unpaid) -->
+              <div class="bg-white text-slate-800 p-4 rounded-xl shadow-md border border-slate-100 flex flex-col gap-3">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-base text-slate-900">Nasi Uduk Combo</h4>
+                    <p class="text-xs text-slate-500">Diminta oleh: <span class="font-semibold text-slate-700">Rian (HRD)</span></p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Belum Dibeli</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                  <span class="text-xs text-slate-500">Estimasi: Rp 15.000</span>
+                  <button class="px-3 py-1 bg-indigo-600 text-white rounded-md text-xs font-semibold hover:bg-indigo-700 transition">Beli & Selesai</button>
+                </div>
+              </div>
+
+              <!-- Employee Balance Card -->
+              <div class="bg-white text-slate-800 p-4 rounded-xl shadow-md border border-slate-100 flex flex-col justify-between">
+                <div class="flex justify-between items-center">
+                  <div>
+                    <h4 class="font-bold text-base text-slate-900">Ahmad Fauzi</h4>
+                    <p class="text-xs text-slate-500">DevOps Engineer</p>
+                  </div>
+                  <!-- Positive Green Balance -->
+                  <span class="text-base font-extrabold text-emerald-600">+ Rp 45.000</span>
+                </div>
+                <div class="flex gap-2 mt-4 pt-2 border-t border-slate-100">
+                  <button class="flex-1 py-1.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md hover:bg-slate-200 transition">Detail Buku</button>
+                  <button class="flex-1 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md hover:bg-emerald-100 transition">Bayar/Top Up</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Action Buttons (Thumb Friendly)</h3>
+            <div class="flex flex-wrap gap-3">
+              <button class="px-5 py-3 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-900/30 hover:bg-indigo-700 active:scale-95 transition">Primary Action (py-3)</button>
+              <button class="px-5 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg shadow-emerald-900/30 hover:bg-emerald-700 active:scale-95 transition">Success Action</button>
+              <button class="px-5 py-3 bg-red-600 text-white rounded-xl font-semibold shadow-lg shadow-red-900/30 hover:bg-red-700 active:scale-95 transition">Danger Action</button>
+              <button class="px-5 py-3 bg-slate-700 text-slate-200 rounded-xl font-semibold hover:bg-slate-600 transition">Secondary</button>
+            </div>
+          </div>
+
+          <!-- Navigation Demo -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Bottom Navigation Preview (Dark Base with Active Colors)</h3>
+            <div class="bg-white text-slate-700 rounded-xl shadow-lg border border-slate-200 max-w-sm mx-auto flex items-center justify-around py-3">
+              <a href="#" class="flex flex-col items-center gap-1 text-indigo-600 font-bold">
+                <i data-lucide="clipboard-list" class="w-6 h-6"></i>
+                <span class="text-[10px]">Pesanan</span>
+              </a>
+              <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="users" class="w-6 h-6"></i>
+                <span class="text-[10px]">Buku Kas</span>
+              </a>
+              <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                <span class="text-[10px]">Belanja</span>
+              </a>
+              <a href="#" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition">
+                <i data-lucide="clock" class="w-6 h-6"></i>
+                <span class="text-[10px]">Absen</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback & States Card -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 backdrop-blur">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="info" class="text-indigo-400"></i>
+          3. States & Feedback (Loading & Toasts)
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Toast Catalog -->
+          <div>
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Toast Notification Styles (Light Mode)</h3>
+            <div class="space-y-2">
+              <!-- Success Toast -->
+              <div class="bg-white text-slate-800 px-4 py-3 rounded-xl shadow-lg border-l-4 border-emerald-500 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="check-circle" class="text-emerald-500 w-5 h-5"></i>
+                  <span class="text-xs font-semibold text-slate-800">Pesanan berhasil diselesaikan!</span>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+              </div>
+
+              <!-- Error Toast -->
+              <div class="bg-white text-slate-800 px-4 py-3 rounded-xl shadow-lg border-l-4 border-red-500 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="alert-triangle" class="text-red-500 w-5 h-5"></i>
+                  <span class="text-xs font-semibold text-slate-800">Budget melebihi batas limit!</span>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading States -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Loading & Skeleton States</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Skeleton Card -->
+              <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+                <div class="flex justify-between items-center">
+                  <div class="h-4 bg-slate-200 rounded w-1/2 animate-pulse"></div>
+                  <div class="h-5 bg-slate-100 rounded-full w-16 animate-pulse"></div>
+                </div>
+                <div class="h-3 bg-slate-200 rounded w-3/4 animate-pulse"></div>
+                <div class="border-t border-slate-100 pt-2 flex justify-between items-center">
+                  <div class="h-3 bg-slate-200 rounded w-1/3 animate-pulse"></div>
+                  <div class="h-7 bg-slate-200 rounded-md w-12 animate-pulse"></div>
+                </div>
+              </div>
+
+              <!-- Button Spinner -->
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-center items-center gap-3">
+                <button class="w-full py-2.5 bg-indigo-600/50 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-not-allowed" disabled>
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Memproses...
+                </button>
+                <span class="text-[10px] text-slate-400">Loading State pada Tombol</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Native Browser Dialogs -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-1.5">Native Dialogs & Confirmations</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Untuk aksi konfirmasi destruktif (seperti mengosongkan troli belanja atau melakukan reset data simulasi), aplikasi menggunakan dialog konfirmasi bawaan browser (<code class="bg-slate-900 text-indigo-400 px-1 py-0.5 rounded font-mono">confirm()</code> dan <code class="bg-slate-900 text-indigo-400 px-1 py-0.5 rounded font-mono">alert()</code>) demi menjamin keandalan sistem tanpa memperberat ukuran aplikasi.</p>
+          </div>
+
+          <!-- Interactive Simulator Controls -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Interaksi Simulator (Uji Coba di Layar HP)</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="triggerMockToast('success', 'Berhasil menyimpan absen!')" class="py-2 bg-emerald-950/20 text-emerald-300 border border-emerald-800 hover:bg-emerald-950/40 rounded-lg text-xs font-semibold transition">
+                Tampilkan Toast Sukses
+              </button>
+              <button onclick="triggerMockToast('danger', 'Gagal memuat cadangan cloud!')" class="py-2 bg-red-950/20 text-red-300 border border-red-800 hover:bg-red-950/40 rounded-lg text-xs font-semibold transition">
+                Tampilkan Toast Error
+              </button>
+              <button onclick="alert('Ini adalah contoh Alert bawaan browser!')" class="py-2 bg-amber-950/20 text-amber-300 border border-amber-800 hover:bg-amber-950/40 rounded-lg text-xs font-semibold transition">
+                Uji Coba Alert Browser
+              </button>
+              <button onclick="confirm('Apakah Anda yakin ingin melakukan konfirmasi bawaan browser ini?')" class="py-2 bg-teal-950/20 text-teal-300 border border-teal-800 hover:bg-teal-950/40 rounded-lg text-xs font-semibold transition">
+                Uji Coba Confirm Browser
+              </button>
+              <button onclick="simulateMockLoading()" class="py-2 bg-indigo-950/20 text-indigo-300 border border-indigo-800 hover:bg-indigo-950/40 rounded-lg text-xs font-semibold transition col-span-2">
+                Simulasikan Loading Data (1.5 Detik)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced & Lifecycle States Card -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 backdrop-blur">
+        <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="text-indigo-400"></i>
+          4. Advanced & Lifecycle States
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Empty State Catalog -->
+          <div>
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Empty State Layout (Light Mode)</h3>
+            <div class="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center space-y-2">
+              <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <i data-lucide="clipboard-x" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-sm">Belum Ada Pesanan</h4>
+                <p class="text-[11px] text-slate-500 max-w-[200px]">Daftar pesanan makanan atau minuman karyawan hari ini masih kosong.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Sheet Modal Preview -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Bottom Sheet Modal Preview (Input Form)</h3>
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2 relative overflow-hidden">
+              <div class="bg-white rounded-t-2xl shadow-xl border-t border-slate-100 p-4 space-y-3">
+                <div class="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-1"></div>
+                <h4 class="font-bold text-slate-900 text-xs">Tambah Pesanan Baru</h4>
+                <div class="space-y-2">
+                  <div class="h-8 bg-slate-100 rounded border border-slate-200 flex items-center px-2 text-[10px] text-slate-400">Pilih Karyawan...</div>
+                  <div class="h-8 bg-slate-100 rounded border border-slate-200 flex items-center px-2 text-[10px] text-slate-400">Nama Makanan/Minuman (contoh: Kopi Susu)</div>
+                </div>
+                <button class="w-full py-2 bg-indigo-600 text-white rounded-lg text-[10px] font-bold">Simpan Pesanan</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Confirmation Dialog Preview -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Custom Confirmation Dialog (Modal Preview)</h3>
+            <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 flex items-center justify-center relative overflow-hidden">
+              <div class="bg-white rounded-2xl p-5 max-w-xs w-full border border-slate-100 shadow-2xl flex flex-col items-center text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+                  <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                  <h4 class="font-extrabold text-slate-900 text-xs">Kosongkan Troli Belanja?</h4>
+                  <p class="text-[9px] text-slate-400 leading-relaxed">Apakah Anda yakin ingin menghapus semua item belanjaan dari troli? Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="flex gap-2 w-full pt-1">
+                  <button class="flex-grow py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-bold transition">Batal</button>
+                  <button class="flex-grow py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[10px] font-bold transition shadow-md shadow-red-100">Ya, Hapus</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WhatsApp Chat Preview -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">WhatsApp Message Template Preview</h3>
+            <div class="bg-[#efeae2] p-4 rounded-xl border border-amber-200/20 text-xs text-slate-800 space-y-2 relative font-sans">
+              <div class="absolute top-2 right-2 bg-emerald-500 text-white px-1.5 py-0.5 rounded text-[8px] font-semibold flex items-center gap-0.5">
+                <i data-lucide="message-circle" class="w-2.5 h-2.5"></i> WhatsApp Preview
+              </div>
+              <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200/50 max-w-[240px] space-y-1.5 text-[10px] leading-relaxed relative">
+                <p class="font-bold text-emerald-800 mb-0.5">Buku Saku OB:</p>
+                <p>Halo *Budi (Dev)*,</p>
+                <p>Berikut rincian tagihan pesanan yang belum terbayar:</p>
+                <ul class="list-disc pl-3 space-y-0.5 font-mono">
+                  <li>Kopi Hitam (Rp 8.000)</li>
+                  <li>Es Teh Manis (Rp 10.000)</li>
+                </ul>
+                <p class="font-bold border-t border-dashed border-slate-200 pt-1">Total Tagihan: *Rp 18.000*</p>
+                <p class="text-[8px] text-slate-400 text-right mt-1">11:32 AM ✓✓</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sync Badges -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Offline-First Cloud Sync Statuses</h3>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <i data-lucide="cloud" class="w-3.5 h-3.5 text-emerald-500"></i> Terkoneksi Cloud
+              </span>
+              <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                <i data-lucide="cloud-off" class="w-3.5 h-3.5 text-amber-500"></i> Mode Offline (Lokal)
+              </span>
+              <span class="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 flex items-center gap-1.5 font-medium">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-blue-500 animate-spin"></i> Sedang Sinkron...
+              </span>
+            </div>
+          </div>
+
+          <!-- Interactive Simulator Controls -->
+          <div class="border-t border-slate-700/60 pt-4">
+            <h3 class="text-sm font-semibold text-slate-400 mb-3">Interaksi Simulator (Uji Layar HP)</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="triggerMockBottomSheet()" class="py-2 bg-indigo-950/20 text-indigo-300 border border-indigo-800 hover:bg-indigo-950/40 rounded-lg text-xs font-semibold transition">
+                Buka Modal Input Form
+              </button>
+              <button onclick="triggerMockEmptyState()" class="py-2 bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-850 rounded-lg text-xs font-semibold transition">
+                Tampilkan Empty State
+              </button>
+              <button onclick="toggleCloudBadge()" class="py-2 bg-blue-950/20 text-blue-300 border border-blue-800 hover:bg-blue-950/40 rounded-lg text-xs font-semibold transition col-span-2">
+                Simulasi Ganti Mode Cloud/Offline
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: INTERACTIVE MOBILE MOCKUP SIMULATOR (5 COLS) -->
+    <section class="lg:col-span-5 flex flex-col items-center sticky top-24 self-start">
+      
+
+      <!-- Phone Frame Container -->
+      <div class="relative w-[375px] h-[750px] bg-slate-950 rounded-[40px] p-3 shadow-2xl border-4 border-slate-800 ring-8 ring-slate-900/60 overflow-hidden flex flex-col phone-scale transition-transform duration-300">
+        
+        <!-- Notch/Speaker -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-6 bg-slate-950 rounded-b-2xl z-50 flex items-center justify-center">
+          <div class="w-12 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- Phone Screen Content (Light Theme - Mobile Application Area) -->
+        <div class="flex-1 bg-gray-100 text-slate-900 rounded-[32px] overflow-hidden flex flex-col relative">
+          
+          <!-- Simulated Bottom Sheet Modal -->
+          <div id="simulated-bottom-sheet" class="absolute inset-0 bg-black/40 z-40 hidden transition-opacity duration-300 flex items-end justify-center">
+            <div id="bottom-sheet-content" class="bg-white rounded-t-3xl w-full p-5 space-y-4 transform translate-y-full transition-transform duration-300 pb-8 shadow-2xl">
+              <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+              <div class="flex justify-between items-center">
+                <h4 class="font-extrabold text-slate-900 text-sm">Buat Pesanan Baru</h4>
+                <button onclick="closeMockBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+              </div>
+              <div class="space-y-3">
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 block mb-1">Pilih Karyawan</label>
+                  <select class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
+                    <option>Budi (Dev)</option>
+                    <option>Rina (Finance)</option>
+                    <option>Doni (HRD)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 block mb-1">Nama Barang</label>
+                  <input type="text" placeholder="Masukkan pesanan (misal: Kopi Hitam)" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 block mb-1">Estimasi Harga (Rp)</label>
+                  <input type="number" placeholder="Contoh: 8000" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
+                </div>
+              </div>
+              <button onclick="saveMockOrder()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-200">Simpan Pesanan</button>
+            </div>
+          </div>
+
+          <!-- Simulated Toast Container -->
+          <div id="simulated-toast-container" class="absolute top-10 left-4 right-4 z-50 pointer-events-none transition-all duration-300 flex flex-col gap-2"></div>
+          
+          <!-- App Status Bar Simulated -->
+          <div class="h-8 bg-indigo-700 text-white flex justify-between items-center px-6 pt-2 select-none">
+            <span class="text-xs font-bold font-mono">23:31</span>
+            <div class="flex items-center gap-1">
+              <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+              <i data-lucide="battery" class="w-4 h-4"></i>
+            </div>
+          </div>
+
+          <!-- App Header -->
+          <header class="bg-indigo-600 text-white px-4 py-3 flex justify-between items-center shadow-md">
+            <h3 id="app-title" class="font-bold text-lg">Daftar Pesanan</h3>
+            <div class="flex items-center gap-2">
+              <!-- Sync / Cloud status badge -->
+              <span id="cloud-status-badge" class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline (Local)
+              </span>
+            </div>
+          </header>
+
+          <!-- App Main Screen Scrollable Area -->
+          <main id="app-body" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-20">
+            <!-- Content will be dynamically inserted here via script -->
+          </main>
+
+          <!-- Floating Action Button (FAB) -->
+          <button id="app-fab" class="absolute bottom-16 right-4 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-900/40 hover:bg-indigo-700 active:scale-95 transition-transform z-40">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+          </button>
+
+          <!-- App Bottom Navigation Bar -->
+          <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 px-2 py-2.5 flex justify-around items-center z-40 select-none">
+            <button onclick="switchScreen('pesanan')" id="tab-pesanan" class="flex flex-col items-center gap-0.5 text-indigo-600">
+              <i data-lucide="clipboard-list" class="w-5.5 h-5.5"></i>
+              <span class="text-[9px] font-semibold">Pesanan</span>
+            </button>
+            <button onclick="switchScreen('bukukas')" id="tab-bukukas" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+              <i data-lucide="users" class="w-5.5 h-5.5"></i>
+              <span class="text-[9px] font-semibold">Buku Kas</span>
+            </button>
+            <button onclick="switchScreen('belanja')" id="tab-belanja" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+              <i data-lucide="shopping-cart" class="w-5.5 h-5.5"></i>
+              <span class="text-[9px] font-semibold">Belanja</span>
+            </button>
+            <button onclick="switchScreen('absen')" id="tab-absen" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+              <i data-lucide="clock" class="w-5.5 h-5.5"></i>
+              <span class="text-[9px] font-semibold">Absen</span>
+            </button>
+          </nav>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Script for Mock State Transitions in Simulator -->
+  <script>
+    // Screen Mock Content Renderers
+    const screens = {
+      pesanan: {
+        title: "Daftar Pesanan",
+        fab: true,
+        render: () => `
+          <!-- Order Segment Toggle -->
+          <div class="flex bg-slate-200/80 p-0.5 rounded-lg text-xs font-semibold text-slate-600">
+            <button class="flex-1 bg-white text-slate-800 py-1.5 rounded-md shadow-sm">Belum Dibeli</button>
+            <button class="flex-1 py-1.5 hover:text-slate-800 transition">Riwayat Selesai</button>
+          </div>
+
+          <!-- Pesanan Lists -->
+          <div class="space-y-3 mt-1">
+            <!-- Card 1 -->
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-sm">Kopi Hitam Double Shot</h4>
+                  <p class="text-[11px] text-slate-500">Staf: <span class="font-semibold text-slate-700">Budi (Dev)</span></p>
+                </div>
+                <span class="px-2 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 rounded">Belum Dibeli</span>
+              </div>
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-xs font-medium text-slate-500">Est: Rp 8.000</span>
+                <button onclick="alert('Selesaikan pesanan: Masukkan harga asli')" class="px-3 py-1 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">Beli</button>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-sm">Es Teh Manis + Bakwan 2</h4>
+                  <p class="text-[11px] text-slate-500">Staf: <span class="font-semibold text-slate-700">Rina (Finance)</span></p>
+                </div>
+                <span class="px-2 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 rounded">Belum Dibeli</span>
+              </div>
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-xs font-medium text-slate-500">Est: Rp 10.000</span>
+                <button class="px-3 py-1 bg-indigo-600 text-white rounded-md text-xs font-medium hover:bg-indigo-700 transition">Beli</button>
+              </div>
+            </div>
+
+            <!-- Card 3 (History Selesai Mocked) -->
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 opacity-60 flex flex-col gap-1">
+              <div class="flex justify-between items-start">
+                <h4 class="font-bold text-slate-700 text-sm line-through">Nasi Goreng Ayam</h4>
+                <span class="px-2 py-0.5 text-[9px] font-bold bg-green-100 text-green-700 border border-green-200 rounded">Selesai</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Staf: Doni (HRD) • Harga Beli: Rp 18.000</p>
+            </div>
+          </div>
+        `
+      },
+      bukukas: {
+        title: "Buku Kas Karyawan",
+        fab: true,
+        render: () => `
+          <!-- Search Bar Simple -->
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+            </span>
+            <input type="text" placeholder="Cari nama staf..." class="w-full pl-9 pr-3 py-2 bg-white text-slate-800 rounded-lg text-xs border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+
+          <!-- Daftar Karyawan -->
+          <div class="space-y-2.5">
+            
+            <!-- Staf 1 (Hutang / Merah) -->
+            <div onclick="showDetailKaryawan('Budi (Dev)', -28000)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer hover:border-indigo-300 transition">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Budi (Dev)</h4>
+                <p class="text-[10px] text-slate-400">2 pesanan belum terbayar</p>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-extrabold text-red-500 font-mono">- Rp 28.000</span>
+                <span class="block text-[8px] text-red-400 font-medium">Hutang (OB Talangi)</span>
+              </div>
+            </div>
+
+            <!-- Staf 2 (Deposit / Hijau) -->
+            <div onclick="showDetailKaryawan('Rina (Finance)', 50000)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer hover:border-indigo-300 transition">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Rina (Finance)</h4>
+                <p class="text-[10px] text-slate-400">Terakhir top-up: Kemarin</p>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-extrabold text-emerald-500 font-mono">+ Rp 50.000</span>
+                <span class="block text-[8px] text-emerald-400 font-medium">Deposit</span>
+              </div>
+            </div>
+
+            <!-- Staf 3 (Hutang / Merah) -->
+            <div onclick="showDetailKaryawan('Doni (HRD)', -15000)" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer hover:border-indigo-300 transition">
+              <div>
+                <h4 class="font-bold text-slate-900 text-sm">Doni (HRD)</h4>
+                <p class="text-[10px] text-slate-400">1 pesanan belum terbayar</p>
+              </div>
+              <div class="text-right">
+                <span class="text-sm font-extrabold text-red-500 font-mono">- Rp 15.000</span>
+                <span class="block text-[8px] text-red-400 font-medium">Hutang (OB Talangi)</span>
+              </div>
+            </div>
+
+          </div>
+        `
+      },
+      belanja: {
+        title: "Kalkulator Belanja",
+        fab: false,
+        render: () => `
+          <!-- Sticky Budget Header Simulator -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-center text-xs text-slate-500 font-semibold">
+              <span>Limit: Rp 500.000</span>
+              <span class="text-slate-800">Total: Rp 165.000</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-emerald-500 h-2 rounded-full" style="width: 33%"></div>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400 font-medium">Sisa Budget:</span>
+              <span class="text-lg font-extrabold text-emerald-600 font-mono">Rp 335.000</span>
+            </div>
+          </div>
+
+          <!-- Add Item Form inside screen -->
+          <div class="bg-white p-3.5 rounded-xl border border-slate-100 shadow-sm space-y-2">
+            <h4 class="text-xs font-bold text-slate-700">Keranjang Belanja Troli</h4>
+            <div class="grid grid-cols-6 gap-2">
+              <input type="text" placeholder="Barang..." class="col-span-3 p-1.5 bg-slate-50 text-xs rounded border border-slate-200">
+              <input type="number" placeholder="Rp..." class="col-span-2 p-1.5 bg-slate-50 text-xs rounded border border-slate-200">
+              <button class="col-span-1 bg-indigo-600 text-white rounded font-bold text-xs flex items-center justify-center">+</button>
+            </div>
+          </div>
+
+          <!-- Shopping Items Added List -->
+          <div class="space-y-2">
+            <div class="bg-white px-3 py-2.5 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">2</span>
+                <div>
+                  <p class="font-bold text-slate-800">Kopi Kapal Api 165g</p>
+                  <p class="text-[10px] text-slate-400">@ Rp 15.000</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-bold font-mono text-slate-700">Rp 30.000</span>
+                <button class="text-red-400 hover:text-red-600"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+
+            <div class="bg-white px-3 py-2.5 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">3</span>
+                <div>
+                  <p class="font-bold text-slate-800">Gula Pasir Rose Brand 1kg</p>
+                  <p class="text-[10px] text-slate-400">@ Rp 18.000</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-bold font-mono text-slate-700">Rp 54.000</span>
+                <button class="text-red-400 hover:text-red-600"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+
+            <div class="bg-white px-3 py-2.5 rounded-lg border border-slate-100 shadow-sm flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">1</span>
+                <div>
+                  <p class="font-bold text-slate-800">Kertas HVS A4 Sinar Dunia</p>
+                  <p class="text-[10px] text-slate-400">@ Rp 51.000</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-bold font-mono text-slate-700">Rp 51.000</span>
+                <button class="text-red-400 hover:text-red-600"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="alert('Belanja selesai! Tersimpan ke riwayat belanja kantor')" class="w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-md hover:bg-emerald-700 active:scale-95 transition mt-3">Selesai Belanja & Simpan</button>
+        `
+      },
+      absen: {
+        title: "Absensi Pribadi",
+        fab: false,
+        render: () => `
+          <!-- Digital Clock Widget -->
+          <div class="bg-white py-6 rounded-xl border border-slate-200 shadow-sm text-center space-y-1">
+            <p class="text-xs font-semibold text-slate-400 tracking-widest uppercase">Senin, 15 Juni 2026</p>
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight font-mono">23:31:45</h1>
+          </div>
+
+          <!-- Absen Button Container -->
+          <div class="flex flex-col items-center py-4">
+            <!-- Check In / Check Out -->
+            <button onclick="toggleAbsen(this)" class="w-32 h-32 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white rounded-full flex flex-col items-center justify-center shadow-lg shadow-emerald-500/20 border-8 border-emerald-100 transition-all">
+              <i data-lucide="fingerprint" class="w-10 h-10 mb-1"></i>
+              <span class="text-sm font-bold tracking-wide">CHECK IN</span>
+            </button>
+            <p id="absen-status" class="text-xs text-slate-500 mt-3 font-semibold">Status: Belum Absen Hari Ini</p>
+          </div>
+
+          <!-- Attendance Report Trigger -->
+          <div class="border-t border-slate-200/80 pt-4">
+            <div class="flex justify-between items-center mb-3">
+              <h4 class="text-xs font-bold text-slate-700">Riwayat Jam Kerja</h4>
+              <button onclick="alert('Filter rentang tanggal')" class="text-[10px] text-indigo-600 font-bold flex items-center gap-1">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Rentang Waktu
+              </button>
+            </div>
+            
+            <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+              <div class="px-3 py-2 flex justify-between text-[11px] text-slate-600">
+                <span class="font-medium">15 Jun 2026</span>
+                <span class="text-emerald-600 font-bold font-mono">08:02 - 17:05 (9j 3m)</span>
+              </div>
+              <div class="px-3 py-2 flex justify-between text-[11px] text-slate-600">
+                <span class="font-medium">14 Jun 2026</span>
+                <span class="text-emerald-600 font-bold font-mono">07:55 - 17:10 (9j 15m)</span>
+              </div>
+              <div class="px-3 py-2 flex justify-between text-[11px] text-slate-600">
+                <span class="font-medium">13 Jun 2026</span>
+                <span class="text-emerald-600 font-bold font-mono">08:10 - 17:00 (8j 50m)</span>
+              </div>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    // Show Detail Karyawan Page Mock
+    function showDetailKaryawan(name, balance) {
+      const isMinus = balance < 0;
+      const formattedBalance = isMinus 
+        ? `- Rp ${Math.abs(balance).toLocaleString('id-ID')}` 
+        : `+ Rp ${balance.toLocaleString('id-ID')}`;
+      
+      const appBody = document.getElementById('app-body');
+      const appTitle = document.getElementById('app-title');
+      const appFab = document.getElementById('app-fab');
+      
+      appTitle.innerText = "Detail Karyawan";
+      appFab.classList.add('hidden');
+
+      appBody.innerHTML = `
+        <button onclick="switchScreen('bukukas')" class="flex items-center gap-1 text-xs text-indigo-600 font-bold mb-3">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Buku Kas
+        </button>
+
+        <!-- Big Card Profile & Balance -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center text-center space-y-3">
+          <div>
+            <h3 class="font-bold text-slate-900 text-base">${name}</h3>
+            <p class="text-[10px] text-slate-400">Status Buku Kas Pribadi</p>
+          </div>
+          <h2 class="text-2xl font-extrabold font-mono ${isMinus ? 'text-red-500' : 'text-emerald-500'}">${formattedBalance}</h2>
+          
+          <div class="flex gap-2 w-full pt-2">
+            <button onclick="alert('Top up/Bayar tunai')" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition">Bayar / Top Up</button>
+            <button onclick="alert('Membuka WhatsApp API Link untuk menagih hutang')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isMinus ? 'opacity-40 cursor-not-allowed' : ''}" ${!isMinus ? 'disabled' : ''}>
+              <i data-lucide="message-square" class="w-4 h-4 text-emerald-400"></i> Kirim WA
+            </button>
+          </div>
+        </div>
+
+        <!-- History Ledger -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-slate-700">Riwayat Mutasi & Pesanan</h4>
+          <div class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+            <div class="p-3 flex justify-between text-xs">
+              <div>
+                <p class="font-bold text-slate-800">Setor Tunai (Top Up)</p>
+                <p class="text-[10px] text-slate-400">14 Juni, 10:15</p>
+              </div>
+              <span class="font-bold text-emerald-600 font-mono">+ Rp 50.000</span>
+            </div>
+            <div class="p-3 flex justify-between text-xs">
+              <div>
+                <p class="font-bold text-slate-800">Beli Nasi Uduk Combo</p>
+                <p class="text-[10px] text-slate-400">12 Juni, 13:00</p>
+              </div>
+              <span class="font-bold text-red-500 font-mono">- Rp 15.000</span>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // Toggle Absen Check-in Button State
+    function toggleAbsen(btn) {
+      const statusText = document.getElementById('absen-status');
+      if (btn.classList.contains('bg-emerald-500')) {
+        btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'border-emerald-100', 'shadow-emerald-500/20');
+        btn.classList.add('bg-red-500', 'hover:bg-red-600', 'border-red-100', 'shadow-red-500/20');
+        btn.innerHTML = `
+          <i data-lucide="fingerprint" class="w-10 h-10 mb-1"></i>
+          <span class="text-sm font-bold tracking-wide">CHECK OUT</span>
+        `;
+        statusText.innerText = "Status: Kerja Sejak 08:00 WIB";
+      } else {
+        btn.classList.remove('bg-red-500', 'hover:bg-red-600', 'border-red-100', 'shadow-red-500/20');
+        btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'border-emerald-100', 'shadow-emerald-500/20');
+        btn.innerHTML = `
+          <i data-lucide="fingerprint" class="w-10 h-10 mb-1"></i>
+          <span class="text-sm font-bold tracking-wide">CHECK IN</span>
+        `;
+        statusText.innerText = "Status: Sudah Check Out (Kerja selesai)";
+      }
+      lucide.createIcons();
+    }
+
+    // Switch screen view
+    function switchScreen(screenKey) {
+      const activeScreen = screens[screenKey];
+      if (!activeScreen) return;
+
+      // Update Header Title
+      document.getElementById('app-title').innerText = activeScreen.title;
+
+      // Update Body Content
+      document.getElementById('app-body').innerHTML = activeScreen.render();
+
+      // Show/Hide FAB
+      const fab = document.getElementById('app-fab');
+      if (activeScreen.fab) {
+        fab.classList.remove('hidden');
+      } else {
+        fab.classList.add('hidden');
+      }
+
+      // Update navigation tab active class
+      const tabs = ['pesanan', 'bukukas', 'belanja', 'absen'];
+      tabs.forEach(tab => {
+        const tabEl = document.getElementById(`tab-${tab}`);
+        if (tab === screenKey) {
+          tabEl.classList.remove('text-slate-400', 'hover:text-slate-600');
+          tabEl.classList.add('text-indigo-600');
+        } else {
+          tabEl.classList.remove('text-indigo-600');
+          tabEl.classList.add('text-slate-400', 'hover:text-slate-600');
+        }
+      });
+
+      // Rerender Lucide Icons
+      lucide.createIcons();
+    }
+
+    // Trigger simulated toast in mobile mockup screen
+    function triggerMockToast(type, message) {
+      const container = document.getElementById('simulated-toast-container');
+      const borderCol = type === 'success' ? 'border-emerald-500' : 'border-red-500';
+      const icon = type === 'success' ? 'check-circle' : 'alert-triangle';
+      const iconCol = type === 'success' ? 'text-emerald-500' : 'text-red-500';
+      
+      const toast = document.createElement('div');
+      toast.className = `bg-white text-slate-800 px-3.5 py-2.5 rounded-xl shadow-lg border-l-4 ${borderCol} flex items-center justify-between pointer-events-auto transform translate-y-[-10px] opacity-0 transition-all duration-300 max-w-full`;
+      toast.innerHTML = `
+        <div class="flex items-center gap-1.5 min-w-0">
+          <i data-lucide="${icon}" class="${iconCol} w-4 h-4 shrink-0"></i>
+          <span class="text-[10px] font-semibold text-slate-800 truncate">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 shrink-0 ml-1.5"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+      
+      // Animate entry
+      setTimeout(() => {
+        toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+      }, 50);
+
+      // Auto dismiss after 3 seconds
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Simulate mobile app screen loading with skeleton
+    let currentActiveKey = 'pesanan';
+    function simulateMockLoading() {
+      const appBody = document.getElementById('app-body');
+      const appFab = document.getElementById('app-fab');
+      
+      // Save current active key
+      const tabs = ['pesanan', 'bukukas', 'belanja', 'absen'];
+      const activeTabEl = tabs.find(t => document.getElementById(`tab-${t}`).classList.contains('text-indigo-600'));
+      currentActiveKey = activeTabEl || 'pesanan';
+
+      appFab.classList.add('hidden');
+      
+      // Render skeleton loading view
+      appBody.innerHTML = `
+        <div class="space-y-4">
+          <!-- Skeleton Card 1 -->
+          <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+              <div class="h-4 bg-slate-200 rounded w-1/3 animate-pulse"></div>
+              <div class="h-5 bg-slate-100 rounded-full w-14 animate-pulse"></div>
+            </div>
+            <div class="h-3 bg-slate-200 rounded w-2/3 animate-pulse"></div>
+            <div class="border-t border-slate-100 pt-2 flex justify-between items-center">
+              <div class="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
+              <div class="h-6 bg-slate-200 rounded-md w-10 animate-pulse"></div>
+            </div>
+          </div>
+
+          <!-- Skeleton Card 2 -->
+          <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+              <div class="h-4 bg-slate-200 rounded w-1/2 animate-pulse"></div>
+              <div class="h-5 bg-slate-100 rounded-full w-14 animate-pulse"></div>
+            </div>
+            <div class="h-3 bg-slate-200 rounded w-3/4 animate-pulse"></div>
+          </div>
+        </div>
+      `;
+
+      // Restore after 1.5 seconds
+      setTimeout(() => {
+        switchScreen(currentActiveKey);
+      }, 1500);
+    }
+
+    // Toggle Cloud Status Badge Simulator
+    let cloudMode = 'offline'; // 'offline', 'synced', 'syncing'
+    function toggleCloudBadge() {
+      const badge = document.getElementById('cloud-status-badge');
+      if (cloudMode === 'offline') {
+        cloudMode = 'syncing';
+        badge.className = "px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-bold flex items-center gap-1";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Sinkron...`;
+        setTimeout(() => {
+          cloudMode = 'synced';
+          badge.className = "px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold flex items-center gap-1";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Cloud Synced`;
+        }, 1500);
+      } else if (cloudMode === 'synced') {
+        cloudMode = 'offline';
+        badge.className = "px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold flex items-center gap-1";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline (Local)`;
+      }
+    }
+
+    // Trigger Bottom Sheet Modal inside mockup
+    function triggerMockBottomSheet() {
+      const modal = document.getElementById('simulated-bottom-sheet');
+      const content = document.getElementById('bottom-sheet-content');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('translate-y-full');
+      }, 50);
+      lucide.createIcons();
+    }
+
+    function closeMockBottomSheet() {
+      const modal = document.getElementById('simulated-bottom-sheet');
+      const content = document.getElementById('bottom-sheet-content');
+      content.classList.add('translate-y-full');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    function saveMockOrder() {
+      closeMockBottomSheet();
+      setTimeout(() => {
+        triggerMockToast('success', 'Pesanan baru berhasil ditambahkan!');
+      }, 350);
+    }
+
+    // Trigger Empty State mockup page view
+    function triggerMockEmptyState() {
+      const appBody = document.getElementById('app-body');
+      const appFab = document.getElementById('app-fab');
+      appFab.classList.add('hidden');
+      
+      appBody.innerHTML = `
+        <div class="flex flex-col items-center justify-center text-center py-12 px-4 space-y-3">
+          <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+            <i data-lucide="clipboard-x" class="w-8 h-8"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-slate-800 text-sm">Belum Ada Pesanan</h4>
+            <p class="text-xs text-slate-500 max-w-[200px] mt-1">Ketuk tombol (+) melayang untuk menambahkan pesanan baru karyawan hari ini.</p>
+          </div>
+          <button onclick="triggerMockBottomSheet()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-100 flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> Buat Pesanan
+          </button>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // Initial render
+    window.onload = () => {
+      switchScreen('pesanan');
+    };
+  </script>
+</body>
+</html>

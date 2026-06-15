@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Buku Saku OB - Aplikasi Pendamping Office Boy</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Configuration for customized styles -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: '#4F46E5', // Indigo
+            success: '#10B981', // Hijau
+            danger: '#EF4444',  // Merah
+            warning: '#F59E0B', // Kuning/Oranye
+            obBg: '#F3F4F6',
+            obCard: '#FFFFFF',
+            obText: '#111827',
+            obTextSec: '#6B7280'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* Hide scrollbars but allow scrolling */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    /* Smooth transition for bottom sheet */
+    .modal-transition {
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    }
+    /* Hide up/down number spin buttons */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 font-sans min-h-screen flex items-center justify-center p-0 sm:p-4 select-none">
+
+  <!-- Mobile Screen Container Shell -->
+  <div class="relative w-full max-w-md h-[100vh] sm:h-[840px] bg-gray-100 flex flex-col overflow-hidden sm:rounded-[36px] sm:shadow-2xl sm:border-8 sm:border-slate-950">
+    
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="absolute top-12 left-4 right-4 z-50 pointer-events-none flex flex-col gap-2">
+      <!-- Toasts will be injected here -->
+    </div>
+
+    <!-- Bottom Sheet Modal Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/40 z-40 hidden transition-opacity duration-300 flex items-end justify-center">
+      <!-- Bottom Sheet Modal Card -->
+      <div id="modal-container" class="bg-white rounded-t-3xl w-full p-6 space-y-4 transform translate-y-full modal-transition pb-10 shadow-2xl">
+        <!-- Content will be injected dynamically -->
+      </div>
+    </div>
+
+    <!-- Phone Status Bar -->
+    <div class="h-8 bg-white text-slate-500 flex justify-between items-center px-4 pt-1.5 shrink-0 z-30 select-none">
+      <span id="statusBarTime" class="text-[10px] font-bold font-mono">12:00</span>
+      <div class="flex items-center gap-2">
+        <button onclick="triggerSyncSimulation()" title="Sync status" class="flex items-center gap-1 text-[9px] font-bold text-amber-500">
+          <i id="syncIcon" data-lucide="cloud-off" class="w-3 h-3 text-amber-500"></i>
+          <span id="syncText">Lokal</span>
+        </button>
+        <div class="flex items-center gap-0.5">
+          <i data-lucide="wifi" class="w-3 h-3"></i>
+          <i data-lucide="battery" class="w-3.5 h-3.5"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Header Bar -->
+    <header class="bg-white border-b border-slate-100 px-4 py-3 flex justify-between items-center shrink-0 z-20">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+          <i data-lucide="pocket" class="w-4.5 h-4.5"></i>
+        </div>
+        <div>
+          <h1 id="screen-title" class="font-bold text-slate-900 text-sm tracking-tight">Buku Saku OB</h1>
+          <p id="screen-subtitle" class="text-[9px] text-slate-400 font-medium mt-0.5">Sistem Kas & Pesanan Harian</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="handleLogout()" title="Keluar Akun" class="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition border border-red-200/50 shadow-sm">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content" class="flex-1 overflow-y-auto no-scrollbar px-4 py-4 pb-24 space-y-4">
+      <!-- Screens are rendered here by JavaScript -->
+    </main>
+
+    <!-- Floating Action Button (FAB) -->
+    <button id="main-fab" onclick="handleFabClick()" class="absolute bottom-20 right-4 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-900/30 active:scale-95 transition z-30">
+      <i id="fab-icon" data-lucide="plus" class="w-7 h-7"></i>
+    </button>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 px-2 py-3 flex justify-around items-center z-30 shadow-lg">
+      <button onclick="switchScreen('pesanan')" id="nav-pesanan" class="flex flex-col items-center gap-0.5 text-indigo-600 font-bold transition">
+        <i data-lucide="clipboard-list" class="w-5.5 h-5.5"></i>
+        <span class="text-[9px]">Pesanan</span>
+      </button>
+      <button onclick="switchScreen('kas')" id="nav-kas" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+        <i data-lucide="users" class="w-5.5 h-5.5"></i>
+        <span class="text-[9px]">Buku Kas</span>
+      </button>
+      <button onclick="switchScreen('belanja')" id="nav-belanja" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+        <i data-lucide="shopping-cart" class="w-5.5 h-5.5"></i>
+        <span class="text-[9px]">Kalkulator</span>
+      </button>
+      <button onclick="switchScreen('absen')" id="nav-absen" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition">
+        <i data-lucide="clock" class="w-5.5 h-5.5"></i>
+        <span class="text-[9px]">Absensi</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- JavaScript App Logic -->
+  <script>
+    // --- DATABASE & DATA MANAGERS ---
+    const DEFAULT_EMPLOYEES = [
+      { id: 'emp-1', nama: 'Budi Hartono', telepon: '6281234567890', deposit: 0, hutang: 28000 },
+      { id: 'emp-2', nama: 'Rina Rahmawati', telepon: '6289876543210', deposit: 50000, hutang: 0 },
+      { id: 'emp-3', nama: 'Doni Setiawan', telepon: '6287654321098', deposit: 0, hutang: 0 }
+    ];
+
+    const DEFAULT_ORDERS = [
+      { id: 'ord-1', karyawanId: 'emp-1', barang: 'Kopi Hitam Double Shot', titipan: 0, realHarga: 0, status: 'BELUM_DIBELI', tanggal: '2026-06-15T10:00:00Z' },
+      { id: 'ord-2', karyawanId: 'emp-1', barang: 'Nasi Uduk Ayam Goreng', titipan: 0, realHarga: 0, status: 'BELUM_DIBELI', tanggal: '2026-06-15T10:15:00Z' },
+      { id: 'ord-3', karyawanId: 'emp-2', barang: 'Es Teh Manis Selasih', titipan: 0, realHarga: 5000, status: 'SELESAI', tanggal: '2026-06-14T14:30:00Z' }
+    ];
+
+    const DEFAULT_LEDGER = [
+      { id: 'led-1', karyawanId: 'emp-1', tipe: 'PESANAN', nominal: -8000, keterangan: 'Beli: Kopi Hitam Double Shot', tanggal: '2026-06-14T10:00:00Z' },
+      { id: 'led-2', karyawanId: 'emp-1', tipe: 'PESANAN', nominal: -20000, keterangan: 'Beli: Nasi Uduk Ayam Goreng', tanggal: '2026-06-14T10:15:00Z' },
+      { id: 'led-3', karyawanId: 'emp-2', tipe: 'TOPUP', nominal: 55000, keterangan: 'Deposit Tunai Awal', tanggal: '2026-06-14T09:00:00Z' },
+      { id: 'led-4', karyawanId: 'emp-2', tipe: 'PESANAN', nominal: -5000, keterangan: 'Beli: Es Teh Manis Selasih', tanggal: '2026-06-14T14:30:00Z' }
+    ];
+
+    // Local Storage Initializers
+    function getDB(key, defaults) {
+      const data = localStorage.getItem('ob_' + key);
+      if (!data) {
+        localStorage.setItem('ob_' + key, JSON.stringify(defaults));
+        return defaults;
+      }
+      return JSON.parse(data);
+    }
+
+    function saveDB(key, data) {
+      localStorage.setItem('ob_' + key, JSON.stringify(data));
+    }
+
+    // Money Input Formatter Helpers
+    function formatNumberInput(input) {
+      let value = input.value.replace(/\D/g, "");
+      if (value) {
+        input.value = parseInt(value, 10).toLocaleString('id-ID');
+      } else {
+        input.value = "";
+      }
+    }
+
+    // Parse Formatted Number to Integer/Float
+    function parseFormattedNumber(valString) {
+      if (!valString) return 0;
+      return parseFloat(valString.replace(/\./g, "")) || 0;
+    }
+
+    // Capitalize First Letter of a String (e.g. for items: "kopi susu" -> "Kopi susu")
+    function capitalizeFirst(str) {
+      if (!str) return "";
+      const trimmed = str.trim();
+      return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+    }
+
+    // Capitalize First Letter of Each Word (e.g. for names: "budi hartono" -> "Budi Hartono")
+    function capitalizeWords(str) {
+      if (!str) return "";
+      return str.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
+
+    let employees = getDB('employees', DEFAULT_EMPLOYEES);
+    
+    // Auto migration to separate deposit & hutang
+    let migrated = false;
+    employees.forEach(emp => {
+      if (emp.deposit === undefined || emp.hutang === undefined) {
+        if (emp.saldo !== undefined) {
+          if (emp.saldo > 0) {
+            emp.deposit = emp.saldo;
+            emp.hutang = 0;
+          } else {
+            emp.deposit = 0;
+            emp.hutang = Math.abs(emp.saldo);
+          }
+          delete emp.saldo;
+        } else {
+          emp.deposit = 0;
+          emp.hutang = 0;
+        }
+        migrated = true;
+      }
+    });
+    if (migrated) {
+      saveDB('employees', employees);
+    }
+
+    let orders = getDB('orders', DEFAULT_ORDERS);
+    let ledger = getDB('ledger', DEFAULT_LEDGER);
+    let attendance = getDB('attendance', []);
+    let shoppingList = getDB('shoppingList', []);
+    let shoppingBudget = localStorage.getItem('ob_budget') ? parseFloat(localStorage.getItem('ob_budget')) : 500000;
+    let shoppingHistory = getDB('shoppingHistory', []);
+
+    // Global state
+    let activeScreen = 'splash';
+    let currentLedgerEmployeeId = null;
+    let orderTabFilter = 'belum'; // 'belum' atau 'selesai'
+    let belanjaTabFilter = 'troli'; // 'troli' atau 'riwayat'
+    let attendanceFilterFrom = '';
+    let attendanceFilterTo = '';
+    let pendingTel = '';
+    let pendingNama = '';
+    let pendingPin = '';
+
+    // --- APPLICATION BOOTSTRAP ---
+    window.onload = () => {
+      // Set default attendance date range
+      const today = new Date().toISOString().split('T')[0];
+      attendanceFilterFrom = today.substring(0, 8) + '01'; // First day of current month
+      attendanceFilterTo = today;
+
+      // Start clock
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // Render default screen
+      switchScreen('splash');
+    };
+
+    function updateClock() {
+      const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+      document.getElementById('statusBarTime').innerText = timeStr;
+      
+      const clockEl = document.getElementById('digitalClock');
+      if (clockEl) {
+        clockEl.innerText = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
+      }
+    }
+
+    // --- SCREEN NAVIGATION CONTROLLER ---
+    function switchScreen(screenKey) {
+      activeScreen = screenKey;
+      
+      const isMainApp = ['pesanan', 'kas', 'belanja', 'absen'].includes(screenKey);
+      const header = document.querySelector('header');
+      const nav = document.querySelector('nav');
+      const fab = document.getElementById('main-fab');
+      const appContent = document.getElementById('app-content');
+
+      if (isMainApp) {
+        header.classList.remove('hidden');
+        nav.classList.remove('hidden');
+        appContent.className = "flex-grow overflow-y-auto no-scrollbar px-4 py-4 pb-24 space-y-4 flex flex-col min-h-0";
+
+        // Update Header Text
+        const screenTitles = {
+          pesanan: { title: "Daftar Pesanan", sub: "Sistem Kas & Pesanan Harian" },
+          kas: { title: "Buku Kas Karyawan", sub: "Laporan Saldo & Riwayat Talangan" },
+          belanja: { title: "Kalkulator Belanja", sub: "Pelacakan Budget Stok Kantor" },
+          absen: { title: "Absen Mandiri OB", sub: "Pencatatan Jam Kerja Pribadi" }
+        };
+        
+        document.getElementById('screen-title').innerText = screenTitles[screenKey].title;
+        document.getElementById('screen-subtitle').innerText = screenTitles[screenKey].sub;
+
+        // Update active nav button colors
+        const navKeys = ['pesanan', 'kas', 'belanja', 'absen'];
+        navKeys.forEach(key => {
+          const btn = document.getElementById('nav-' + key);
+          if (key === screenKey) {
+            btn.className = "flex flex-col items-center gap-0.5 text-indigo-600 font-bold transition";
+          } else {
+            btn.className = "flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-600 transition";
+          }
+        });
+
+        // Manage FAB visibility
+        const fabIcon = document.getElementById('fab-icon');
+        if (screenKey === 'pesanan') {
+          fab.classList.remove('hidden');
+          fabIcon.setAttribute('data-lucide', 'clipboard-copy');
+        } else if (screenKey === 'kas' && !currentLedgerEmployeeId) {
+          fab.classList.remove('hidden');
+          fabIcon.setAttribute('data-lucide', 'user-plus');
+        } else {
+          fab.classList.add('hidden');
+        }
+      } else {
+        header.classList.add('hidden');
+        nav.classList.add('hidden');
+        fab.classList.add('hidden');
+        appContent.className = "flex-grow overflow-y-auto no-scrollbar h-full flex flex-col justify-between";
+      }
+
+      lucide.createIcons();
+
+      // Render Screen Content
+      renderCurrentScreen();
+    }
+
+    function renderCurrentScreen() {
+      const appContent = document.getElementById('app-content');
+      appContent.scrollTop = 0;
+
+      if (activeScreen === 'splash') {
+        renderSplash(appContent);
+      } else if (activeScreen === 'landing') {
+        renderLanding(appContent);
+      } else if (activeScreen === 'login') {
+        renderLogin(appContent);
+      } else if (activeScreen === 'register') {
+        renderRegister(appContent);
+      } else if (activeScreen === 'otp') {
+        renderOtp(appContent);
+      } else if (activeScreen === 'pesanan') {
+        renderPesananScreen(appContent);
+      } else if (activeScreen === 'kas') {
+        renderKasScreen(appContent);
+      } else if (activeScreen === 'belanja') {
+        renderBelanjaScreen(appContent);
+      } else if (activeScreen === 'absen') {
+        renderAbsenScreen(appContent);
+      }
+      lucide.createIcons();
+    }
+
+    // --- NOTIFICATION / TOAST SYSTEM ---
+    function triggerToast(type, message) {
+      const container = document.getElementById('toast-container');
+      const borderCol = type === 'success' ? 'border-emerald-500' : 'border-red-500';
+      const icon = type === 'success' ? 'check-circle' : 'alert-triangle';
+      const iconCol = type === 'success' ? 'text-emerald-500' : 'text-red-500';
+      
+      const toast = document.createElement('div');
+      toast.className = `bg-white text-slate-800 px-4 py-3 rounded-xl shadow-lg border-l-4 ${borderCol} flex items-center justify-between pointer-events-auto transform translate-y-[-10px] opacity-0 transition-all duration-300 max-w-full`;
+      toast.innerHTML = `
+        <div class="flex items-center gap-2 min-w-0">
+          <i data-lucide="${icon}" class="${iconCol} w-5 h-5 shrink-0"></i>
+          <span class="text-xs font-semibold text-slate-800 truncate">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 shrink-0 ml-2"><i data-lucide="x" class="w-4 h-4"></i></button>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+      }, 50);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function showCustomConfirm(title, message, onConfirm, yesLabel = 'Ya, Hapus') {
+      const modal = document.createElement('div');
+      modal.className = "fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0";
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-5 max-w-xs w-full border border-slate-100 shadow-2xl flex flex-col items-center text-center space-y-4 transform scale-95 transition-all duration-300 opacity-0">
+          <div class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+            <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+          </div>
+          <div class="space-y-1">
+            <h4 class="font-extrabold text-slate-900 text-xs">${title}</h4>
+            <p class="text-[9px] text-slate-400 leading-relaxed">${message}</p>
+          </div>
+          <div class="flex gap-2 w-full pt-1">
+            <button id="confirmCancelBtn" class="flex-grow py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-bold transition">Batal</button>
+            <button id="confirmYesBtn" class="flex-grow py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl text-[10px] font-bold transition shadow-md shadow-red-100">${yesLabel}</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      lucide.createIcons();
+
+      // Trigger animations
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.querySelector('.transform').classList.remove('scale-95', 'opacity-0');
+      }, 50);
+
+      const closeModal = () => {
+        modal.classList.add('opacity-0');
+        modal.querySelector('.transform').classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+          modal.remove();
+        }, 300);
+      };
+
+      modal.querySelector('#confirmCancelBtn').addEventListener('click', () => {
+        closeModal();
+      });
+
+      modal.querySelector('#confirmYesBtn').addEventListener('click', () => {
+        onConfirm();
+        closeModal();
+      });
+    }
+
+    // --- INTERACTIVE BOTTOM SHEET MODEL CONTROLLER ---
+    function openBottomSheet(contentHtml) {
+      const backdrop = document.getElementById('modal-backdrop');
+      const container = document.getElementById('modal-container');
+      
+      container.innerHTML = contentHtml;
+      backdrop.classList.remove('hidden');
+      
+      setTimeout(() => {
+        backdrop.classList.add('opacity-100');
+        container.classList.remove('translate-y-full');
+      }, 20);
+      lucide.createIcons();
+    }
+
+    function closeBottomSheet() {
+      const backdrop = document.getElementById('modal-backdrop');
+      const container = document.getElementById('modal-container');
+      
+      container.classList.add('translate-y-full');
+      backdrop.classList.remove('opacity-100');
+      
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+      }, 300);
+    }
+
+    // Dismiss modal if clicking backdrop
+    document.getElementById('modal-backdrop').onclick = (e) => {
+      if (e.target === document.getElementById('modal-backdrop')) {
+        closeBottomSheet();
+      }
+    };
+
+    // --- FAB ACTION CONTROLLER ---
+    function handleFabClick() {
+      if (activeScreen === 'pesanan') {
+        // Open Bottom Sheet: Create New Order
+        let selectOptions = employees.map(emp => `<option value="${emp.id}">${emp.nama}</option>`).join('');
+        openBottomSheet(`
+          <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+          <div class="flex justify-between items-center">
+            <h3 class="font-extrabold text-slate-900 text-sm">Buat Pesanan Baru</h3>
+            <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <form id="orderForm" onsubmit="createNewOrder(event)" class="space-y-3 pt-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Pilih Karyawan</label>
+              <select id="ordKaryawanId" onchange="handleOrderEmployeeChange(this.value)" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+                ${selectOptions}
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Barang Pesanan</label>
+              <input type="text" id="ordBarang" placeholder="Misal: Kopi Hitam Double Shot" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Uang Titipan Cash (Optional, Rp)</label>
+              <input type="text" id="ordTitipan" oninput="formatNumberInput(this)" placeholder="Masukkan jika ada uang cash" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
+              <span id="titipanHelper" class="text-[9px] text-emerald-600 font-bold block mt-1"></span>
+            </div>
+            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100">Buat Pesanan</button>
+          </form>
+        `);
+        // Trigger initial calculation check
+        if (employees.length > 0) {
+          handleOrderEmployeeChange(document.getElementById('ordKaryawanId').value);
+        }
+      } else if (activeScreen === 'kas') {
+        // Open Bottom Sheet: Create New Employee
+        openBottomSheet(`
+          <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+          <div class="flex justify-between items-center">
+            <h3 class="font-extrabold text-slate-900 text-sm">Daftarkan Karyawan Baru</h3>
+            <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+          <form id="employeeForm" onsubmit="createNewEmployee(event)" class="space-y-3 pt-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Nama Karyawan</label>
+              <input type="text" id="empNama" placeholder="Nama Lengkap" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">No. WhatsApp (Aktif)</label>
+              <input type="tel" id="empTel" placeholder="6281234567890" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+              <span class="text-[9px] text-slate-400 mt-1 block">Format dimulai kode negara, misal: 62812...</span>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Setoran Deposit Awal (Optional, Rp)</label>
+              <input type="text" id="empDeposit" oninput="formatNumberInput(this)" placeholder="Contoh: 50.000" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
+            </div>
+            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100">Daftarkan</button>
+          </form>
+        `);
+      }
+    }
+
+    // --- SCREEN 1: PESANAN SCREEN LOGIC ---
+    function renderPesananScreen(container) {
+      let ordersBelum = orders.filter(o => o.status === 'BELUM_DIBELI' || o.status === 'MENUNGGU_KEMBALIAN');
+      let ordersSelesai = orders.filter(o => o.status === 'SELESAI');
+      let listData = orderTabFilter === 'belum' ? ordersBelum : ordersSelesai;
+
+      let listHtml = '';
+      if (listData.length === 0) {
+        listHtml = `
+          <!-- Empty State -->
+          <div class="flex flex-col items-center justify-center text-center py-16 px-4 space-y-3">
+            <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+              <i data-lucide="clipboard-x" class="w-8 h-8"></i>
+            </div>
+            <div>
+              <h4 class="font-extrabold text-slate-800 text-sm">Belum Ada Pesanan</h4>
+              <p class="text-xs text-slate-500 max-w-[200px] mt-1">Daftar pesanan dengan status "${orderTabFilter === 'belum' ? 'Belum Dibeli / Selesai Belum Lunas' : 'Selesai'}" masih kosong.</p>
+            </div>
+            ${orderTabFilter === 'belum' ? `
+              <button onclick="handleFabClick()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-100 flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-4 h-4"></i> Buat Pesanan
+              </button>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        listHtml = listData.map(ord => {
+          const emp = employees.find(e => e.id === ord.karyawanId) || { nama: 'Unknown' };
+          
+          if (ord.status === 'BELUM_DIBELI') {
+            return `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-sm text-slate-900">${ord.barang}</h4>
+                    <p class="text-[10px] text-slate-500">Pemesan: <span class="font-semibold text-slate-700">${emp.nama}</span></p>
+                  </div>
+                  <span class="px-2.5 py-0.5 text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 rounded-md">Belum Dibeli</span>
+                </div>
+                ${ord.titipan > 0 ? `
+                  <div class="bg-slate-50 p-2 rounded-lg border border-slate-200 text-[10px] text-slate-600 font-semibold flex justify-between">
+                    <span>Titipan Uang Cash:</span>
+                    <span>Rp ${ord.titipan.toLocaleString('id-ID')}</span>
+                  </div>
+                ` : ''}
+                <div class="flex justify-end pt-2 border-t border-slate-100">
+                  <button onclick="promptCompleteOrder('${ord.id}')" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition">Beli & Selesai</button>
+                </div>
+              </div>
+            `;
+          } else if (ord.status === 'MENUNGGU_KEMBALIAN') {
+            return `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-indigo-100 flex flex-col gap-2.5">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-bold text-sm text-slate-900">${ord.barang}</h4>
+                    <p class="text-[10px] text-slate-500">Pemesan: <span class="font-semibold text-slate-700">${emp.nama}</span></p>
+                  </div>
+                  <span class="px-2.5 py-0.5 text-[9px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 rounded-md">Uang Kembalian</span>
+                </div>
+                <div class="bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100 text-[10px] text-indigo-900 flex justify-between items-center font-semibold">
+                  <span>Titip: Rp ${ord.titipan.toLocaleString('id-ID')} • Beli: Rp ${ord.realHarga.toLocaleString('id-ID')}</span>
+                  <span class="text-xs text-indigo-600 font-bold font-mono">Kembalian: Rp ${ord.kembalian.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="flex justify-end pt-1.5 border-t border-slate-100">
+                  <button onclick="giveChangeBack('${ord.id}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Kembalian Sudah Diberikan
+                  </button>
+                </div>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 opacity-70 flex flex-col gap-1.5">
+                <div class="flex justify-between items-start">
+                  <h4 class="font-bold text-sm text-slate-700 line-through">${ord.barang}</h4>
+                  <span class="px-2.5 py-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md">Selesai</span>
+                </div>
+                <div class="text-[10px] text-slate-500 flex justify-between items-center">
+                  <span>Pemesan: ${emp.nama}</span>
+                  <span class="font-bold font-mono">Beli: Rp ${ord.realHarga.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+            `;
+          }
+        }).join('');
+      }
+
+      container.innerHTML = `
+        <!-- Filter Tabs -->
+        <div class="flex bg-slate-200 p-0.5 rounded-xl text-xs font-bold text-slate-500">
+          <button onclick="setOrderFilter('belum')" class="flex-1 py-2 rounded-lg transition ${orderTabFilter === 'belum' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}">Belum Dibeli (${ordersBelum.length})</button>
+          <button onclick="setOrderFilter('selesai')" class="flex-1 py-2 rounded-lg transition ${orderTabFilter === 'selesai' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}">Selesai (${ordersSelesai.length})</button>
+        </div>
+
+        <!-- Order List Container -->
+        <div class="space-y-3">
+          ${listHtml}
+        </div>
+      `;
+    }
+
+    function setOrderFilter(filter) {
+      orderTabFilter = filter;
+      renderCurrentScreen();
+    }
+
+    function handleOrderEmployeeChange(empId) {
+      const emp = employees.find(e => e.id === empId);
+      const titipanInput = document.getElementById('ordTitipan');
+      const helper = document.getElementById('titipanHelper');
+      if (!titipanInput || !helper) return;
+
+      if (emp && emp.deposit > 0) {
+        titipanInput.disabled = true;
+        titipanInput.value = "";
+        titipanInput.className = "w-full p-2.5 bg-slate-100 text-xs rounded-lg border border-slate-200 text-slate-400 cursor-not-allowed";
+        helper.innerText = `Karyawan memiliki deposit: Rp ${emp.deposit.toLocaleString('id-ID')} (Cash dinonaktifkan)`;
+      } else {
+        titipanInput.disabled = false;
+        titipanInput.className = "w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none";
+        helper.innerText = "";
+      }
+    }
+
+    function createNewOrder(e) {
+      e.preventDefault();
+      const id = 'ord-' + Date.now();
+      const karyawanId = document.getElementById('ordKaryawanId').value;
+      const barang = capitalizeFirst(document.getElementById('ordBarang').value);
+      const titipan = parseFormattedNumber(document.getElementById('ordTitipan').value);
+      
+      const newOrd = { id, karyawanId, barang, titipan, realHarga: 0, kembalian: 0, status: 'BELUM_DIBELI', tanggal: new Date().toISOString() };
+      orders.push(newOrd);
+      saveDB('orders', orders);
+
+      closeBottomSheet();
+      triggerToast('success', 'Pesanan baru berhasil dicatat!');
+      renderCurrentScreen();
+    }
+
+    function promptCompleteOrder(ordId) {
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+
+      openBottomSheet(`
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center">
+          <h3 class="font-extrabold text-slate-900 text-sm">Selesaikan Pembelian</h3>
+          <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="bg-indigo-50 p-3.5 rounded-xl border border-indigo-100 space-y-1 mt-2">
+          <p class="text-xs font-bold text-slate-700">${ord.barang}</p>
+          ${ord.titipan > 0 ? `<p class="text-[10px] text-slate-500">Titipan Uang: Rp ${ord.titipan.toLocaleString('id-ID')}</p>` : ''}
+        </div>
+        <form onsubmit="completeOrder(event, '${ordId}')" class="space-y-3">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block mb-1">Harga Pembelian Asli (Rp)</label>
+            <input type="text" id="realHargaInput" oninput="formatNumberInput(this)" placeholder="Masukkan harga asli dari struk" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+          </div>
+          <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-100">Beli & Konfirmasi</button>
+        </form>
+      `);
+    }
+
+    function completeOrder(e, ordId) {
+      e.preventDefault();
+      const realHarga = parseFormattedNumber(document.getElementById('realHargaInput').value);
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+
+      ord.realHarga = realHarga;
+      const emp = employees.find(em => em.id === ord.karyawanId);
+
+      if (ord.titipan === 0) {
+        // Talangan transaction - deduct actual price directly from balance upon purchase
+        ord.status = 'SELESAI';
+        
+        if (emp) {
+          emp.hutang += realHarga;
+          saveDB('employees', employees);
+        }
+
+        const ledId = 'led-' + Date.now();
+        const newLed = { 
+          id: ledId, 
+          karyawanId: ord.karyawanId, 
+          tipe: 'PESANAN', 
+          nominal: -realHarga, 
+          keterangan: 'Beli: ' + ord.barang, 
+          lunas: false,
+          tanggal: new Date().toISOString() 
+        };
+        ledger.push(newLed);
+        saveDB('ledger', ledger);
+        
+        closeBottomSheet();
+        triggerToast('success', 'Pesanan selesai! Saldo otomatis diperbarui.');
+      } else {
+        // Cash payment transaction
+        const kembalian = ord.titipan - realHarga;
+        ord.kembalian = kembalian;
+
+        if (kembalian > 0) {
+          // Change is due
+          ord.status = 'MENUNGGU_KEMBALIAN';
+          closeBottomSheet();
+          triggerToast('success', `Pembelian selesai! Kembalian Rp ${kembalian.toLocaleString('id-ID')} perlu diserahkan.`);
+        } else if (kembalian < 0) {
+          // Not enough cash titipan, remaining becomes debt
+          const deficit = Math.abs(kembalian);
+          ord.status = 'SELESAI';
+          
+          if (emp) {
+            emp.hutang += deficit;
+            saveDB('employees', employees);
+          }
+
+          // Log the deficit in employee ledger
+          const ledId = 'led-' + Date.now();
+          const newLed = { 
+            id: ledId, 
+            karyawanId: ord.karyawanId, 
+            tipe: 'PESANAN', 
+            nominal: -deficit, 
+            keterangan: `Kurang bayar cash: ${ord.barang} (Titip: ${ord.titipan}, Beli: ${realHarga})`, 
+            lunas: false,
+            tanggal: new Date().toISOString() 
+          };
+          ledger.push(newLed);
+          saveDB('ledger', ledger);
+
+          closeBottomSheet();
+          triggerToast('success', `Pembelian selesai! Kekurangan Rp ${deficit.toLocaleString('id-ID')} dicatat sebagai hutang.`);
+        } else {
+          // Exact amount paid
+          ord.status = 'SELESAI';
+          closeBottomSheet();
+          triggerToast('success', 'Pembelian selesai dengan uang pas!');
+        }
+      }
+      saveDB('orders', orders);
+      renderCurrentScreen();
+    }
+
+    function giveChangeBack(ordId) {
+      const ord = orders.find(o => o.id === ordId);
+      if (!ord) return;
+
+      ord.status = 'SELESAI';
+      saveDB('orders', orders);
+      triggerToast('success', 'Kembalian berhasil diserahkan! Status pesanan Selesai.');
+      renderCurrentScreen();
+    }
+
+
+    // --- SCREEN 2: KAS SCREEN LOGIC (EMPLOYEE DIRECTORY & LEDGER) ---
+    function renderKasScreen(container) {
+      if (currentLedgerEmployeeId) {
+        renderLedgerView(container, currentLedgerEmployeeId);
+        return;
+      }
+
+      let employeeListHtml = employees.map(emp => {
+        const netBalance = emp.deposit - emp.hutang;
+        const formattedNet = netBalance < 0 
+          ? `- Rp ${Math.abs(netBalance).toLocaleString('id-ID')}` 
+          : `+ Rp ${netBalance.toLocaleString('id-ID')}`;
+        const netColorClass = netBalance === 0 ? 'text-slate-500' : (netBalance < 0 ? 'text-red-500' : 'text-emerald-500');
+
+        return `
+          <div onclick="openLedger('${emp.id}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-indigo-300 flex items-center justify-between cursor-pointer transition">
+            <div>
+              <h4 class="font-bold text-sm text-obText">${emp.nama}</h4>
+              <div class="flex gap-1.5 mt-1">
+                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold ${emp.hutang > 0 ? 'bg-red-50 text-red-700' : 'bg-slate-50 text-slate-400'}">Hutang: Rp ${emp.hutang.toLocaleString('id-ID')}</span>
+                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold ${emp.deposit > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-400'}">Deposit: Rp ${emp.deposit.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-extrabold font-mono ${netColorClass}">${formattedNet}</span>
+              <span class="block text-[8px] text-slate-400 mt-0.5">Lihat Buku Kas</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
+          </span>
+          <input type="text" placeholder="Cari nama karyawan..." oninput="searchEmployees(this.value)" class="w-full pl-9 pr-3 py-2.5 bg-white text-slate-800 rounded-xl text-xs border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
+        </div>
+
+        <div id="employeesListContainer" class="space-y-2.5">
+          ${employeeListHtml}
+        </div>
+      `;
+    }
+
+    function searchEmployees(query) {
+      const filtered = employees.filter(e => e.nama.toLowerCase().includes(query.toLowerCase()));
+      const container = document.getElementById('employeesListContainer');
+      if (!container) return;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center text-xs text-slate-400 font-semibold">Karyawan tidak ditemukan</div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(emp => {
+        const netBalance = emp.deposit - emp.hutang;
+        const formattedNet = netBalance < 0 
+          ? `- Rp ${Math.abs(netBalance).toLocaleString('id-ID')}` 
+          : `+ Rp ${netBalance.toLocaleString('id-ID')}`;
+        const netColorClass = netBalance === 0 ? 'text-slate-500' : (netBalance < 0 ? 'text-red-500' : 'text-emerald-500');
+
+        return `
+          <div onclick="openLedger('${emp.id}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-indigo-300 flex items-center justify-between cursor-pointer transition">
+            <div>
+              <h4 class="font-bold text-sm text-obText">${emp.nama}</h4>
+              <div class="flex gap-1.5 mt-1">
+                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold ${emp.hutang > 0 ? 'bg-red-50 text-red-700' : 'bg-slate-50 text-slate-400'}">Hutang: Rp ${emp.hutang.toLocaleString('id-ID')}</span>
+                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold ${emp.deposit > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-400'}">Deposit: Rp ${emp.deposit.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-extrabold font-mono ${netColorClass}">${formattedNet}</span>
+              <span class="block text-[8px] text-slate-400 mt-0.5">Lihat Buku Kas</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function createNewEmployee(e) {
+      e.preventDefault();
+      const id = 'emp-' + Date.now();
+      const nama = capitalizeWords(document.getElementById('empNama').value);
+      const telepon = document.getElementById('empTel').value;
+      const depositVal = parseFormattedNumber(document.getElementById('empDeposit').value);
+
+      const newEmp = { id, nama, telepon, deposit: depositVal, hutang: 0 };
+      employees.push(newEmp);
+      saveDB('employees', employees);
+
+      if (depositVal > 0) {
+        const ledId = 'led-' + Date.now();
+        const newLed = { id: ledId, karyawanId: id, tipe: 'TOPUP', nominal: depositVal, keterangan: 'Deposit Awal Registrasi', tanggal: new Date().toISOString() };
+        ledger.push(newLed);
+        saveDB('ledger', ledger);
+      }
+
+      closeBottomSheet();
+      triggerToast('success', 'Karyawan baru berhasil didaftarkan!');
+      renderCurrentScreen();
+    }
+
+    function openLedger(empId) {
+      currentLedgerEmployeeId = empId;
+      document.getElementById('main-fab').classList.add('hidden');
+      renderCurrentScreen();
+    }
+
+    function closeLedger() {
+      currentLedgerEmployeeId = null;
+      document.getElementById('main-fab').classList.remove('hidden');
+      renderCurrentScreen();
+    }
+
+    function renderLedgerView(container, empId) {
+      const emp = employees.find(e => e.id === empId);
+      if (!emp) return;
+
+      const netBalance = emp.deposit - emp.hutang;
+      const formattedNet = netBalance < 0 
+        ? `- Rp ${Math.abs(netBalance).toLocaleString('id-ID')}` 
+        : `+ Rp ${netBalance.toLocaleString('id-ID')}`;
+      const balanceColor = netBalance === 0 ? 'text-slate-500' : (netBalance < 0 ? 'text-red-500' : 'text-emerald-500');
+      const canSendWA = emp.hutang > 0 || emp.deposit > 0;
+
+      let empLedgers = ledger.filter(l => l.karyawanId === empId).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+      
+      let ledgerListHtml = '';
+      if (empLedgers.length === 0) {
+        ledgerListHtml = `
+          <div class="py-8 text-center text-xs text-slate-400 font-semibold">Belum ada riwayat mutasi kas</div>
+        `;
+      } else {
+        ledgerListHtml = empLedgers.map(led => {
+          const nominalVal = led.nominal;
+          const formattedNominal = nominalVal < 0 
+            ? `- Rp ${Math.abs(nominalVal).toLocaleString('id-ID')}` 
+            : `+ Rp ${nominalVal.toLocaleString('id-ID')}`;
+          const colorClass = nominalVal < 0 ? 'text-red-500' : 'text-emerald-500';
+          const timeStr = new Date(led.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+          const isLunas = led.lunas;
+          const statusBadge = led.tipe === 'PESANAN' && led.nominal < 0 
+            ? (isLunas ? ' <span class="text-[8px] bg-slate-100 text-slate-500 px-1 py-0.5 rounded font-bold ml-1">Lunas</span>' : ' <span class="text-[8px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-bold ml-1">Belum Lunas</span>')
+            : '';
+
+          return `
+            <div class="py-3 flex justify-between items-center text-xs">
+              <div>
+                <p class="font-bold text-slate-800">${led.keterangan}${statusBadge}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">${timeStr}</p>
+              </div>
+              <span class="font-bold font-mono ${colorClass}">${formattedNominal}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      container.innerHTML = `
+        <button onclick="closeLedger()" class="flex items-center gap-1 text-xs text-indigo-600 font-bold mb-1">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Buku Kas
+        </button>
+
+        <!-- Big Card Balance sheet -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center space-y-3">
+          <div>
+            <h3 class="font-bold text-base text-slate-900">${emp.nama}</h3>
+            <p class="text-[10px] text-slate-400">Rincian Saldo Keuangan</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 w-full border-y border-slate-100 py-3 my-1">
+            <div class="text-center">
+              <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Hutang</span>
+              <span class="text-sm font-extrabold font-mono text-red-500">Rp ${emp.hutang.toLocaleString('id-ID')}</span>
+            </div>
+            <div class="text-center border-l border-slate-100">
+              <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Deposit</span>
+              <span class="text-sm font-extrabold font-mono text-emerald-500">Rp ${emp.deposit.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+
+          <div class="w-full text-center">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Kekurangan Bersih</span>
+            <h2 class="text-xl font-extrabold font-mono ${netBalance < 0 ? 'text-red-500' : 'text-slate-500'}">
+              ${netBalance < 0 ? `Rp ${Math.abs(netBalance).toLocaleString('id-ID')}` : 'Rp 0 (Lunas/Surplus)'}
+            </h2>
+          </div>
+          
+          <div class="flex gap-2 w-full pt-2">
+            <button onclick="promptTopUp('${emp.id}')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">Bayar / Top Up</button>
+            <button onclick="sendWhatsAppBilling('${emp.id}')" class="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${!canSendWA ? 'opacity-40 cursor-not-allowed' : ''}" ${!canSendWA ? 'disabled' : ''}>
+              <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i> Kirim WA
+            </button>
+          </div>
+        </div>
+
+        <!-- Ledger History -->
+        <div class="space-y-2 flex flex-col min-h-0 flex-grow">
+          <h4 class="text-xs font-bold text-slate-400 tracking-wide uppercase">Riwayat Mutasi Buku Kas</h4>
+          <div class="bg-white rounded-xl border border-slate-200/60 divide-y divide-slate-100 px-4 overflow-y-auto no-scrollbar shadow-sm max-h-[170px]">
+            ${ledgerListHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function promptTopUp(empId) {
+      const emp = employees.find(e => e.id === empId);
+      if (!emp) return;
+
+      let depositActionHtml = '';
+      if (emp.deposit > 0 && emp.hutang > 0) {
+        const amountToPay = Math.min(emp.deposit, emp.hutang);
+        depositActionHtml = `
+          <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl space-y-2 mt-2 text-xs">
+            <p class="font-bold text-emerald-800">Gunakan Saldo Deposit untuk Membayar Hutang</p>
+            <p class="text-[10px] text-slate-500">Staf memiliki deposit sebesar Rp ${emp.deposit.toLocaleString('id-ID')} dan hutang sebesar Rp ${emp.hutang.toLocaleString('id-ID')}. Anda dapat memotong deposit sebesar Rp ${amountToPay.toLocaleString('id-ID')} untuk melunasi hutang.</p>
+            <button type="button" onclick="payDebtWithDeposit('${emp.id}', ${amountToPay})" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Potong Deposit Rp ${amountToPay.toLocaleString('id-ID')}
+            </button>
+          </div>
+          <div class="relative flex py-2 items-center">
+              <div class="flex-grow border-t border-slate-200"></div>
+              <span class="flex-shrink mx-3 text-slate-400 text-[9px] uppercase font-bold">atau top up tunai baru</span>
+              <div class="flex-grow border-t border-slate-200"></div>
+          </div>
+        `;
+      }
+
+      openBottomSheet(`
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-extrabold text-slate-900 text-sm">Top Up Tunai / Bayar Talangan</h3>
+          <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        ${depositActionHtml}
+        <form onsubmit="handleTopUp(event, '${emp.id}')" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Karyawan</label>
+            <input type="text" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 font-bold text-slate-700" value="${emp.nama}" readonly />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nominal Pembayaran (Rp)</label>
+            <input type="text" id="topupNominal" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 font-extrabold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" placeholder="Masukkan nominal..." required oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Keterangan / Catatan</label>
+            <input type="text" id="topupKeterangan" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Contoh: Titipan bayar makan siang..." oninput="capitalizeInput(this)" />
+          </div>
+          <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-100">
+            Simpan Transaksi
+          </button>
+        </form>
+      `);
+      
+      // Re-initialize lucide icons for inside the bottom sheet
+      lucide.createIcons();
+    }
+
+    function payDebtWithDeposit(empId, amount) {
+      const emp = employees.find(em => em.id === empId);
+      if (!emp) return;
+
+      emp.deposit -= amount;
+      emp.hutang -= amount;
+      saveDB('employees', employees);
+
+      // Mark corresponding unpaid items in ledger as lunas (FIFO)
+      let amountToDistribute = amount;
+      const unpaidItems = ledger
+        .filter(l => l.karyawanId === empId && l.tipe === 'PESANAN' && l.nominal < 0 && !l.lunas)
+        .sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+      
+      for (let item of unpaidItems) {
+        const cost = Math.abs(item.nominal);
+        if (amountToDistribute >= cost) {
+          item.lunas = true;
+          amountToDistribute -= cost;
+        } else {
+          break;
+        }
+      }
+
+      // Log in ledger
+      const ledId = 'led-' + Date.now();
+      const newLed = { 
+        id: ledId, 
+        karyawanId: empId, 
+        tipe: 'TOPUP', 
+        nominal: 0,
+        keterangan: `Potong deposit untuk bayar talangan sebesar Rp ${amount.toLocaleString('id-ID')}`, 
+        tanggal: new Date().toISOString() 
+      };
+      ledger.push(newLed);
+      saveDB('ledger', ledger);
+
+      closeBottomSheet();
+      triggerToast('success', `Pembayaran menggunakan deposit sebesar Rp ${amount.toLocaleString('id-ID')} berhasil!`);
+      renderCurrentScreen();
+    }
+
+    function handleTopUp(e, empId) {
+      e.preventDefault();
+      const nominal = parseFormattedNumber(document.getElementById('topupNominal').value);
+      const keterangan = capitalizeFirst(document.getElementById('topupKeterangan').value) || 'Setor Tunai (Top Up)';
+      const emp = employees.find(em => em.id === empId);
+      if (!emp) return;
+
+      // Distribute payment to reduce hutang and increase deposit if surplus
+      let amountLeft = nominal;
+      if (emp.hutang > 0) {
+        if (amountLeft >= emp.hutang) {
+          amountLeft -= emp.hutang;
+          emp.hutang = 0;
+        } else {
+          emp.hutang -= amountLeft;
+          amountLeft = 0;
+        }
+      }
+      if (amountLeft > 0) {
+        emp.deposit += amountLeft;
+      }
+      saveDB('employees', employees);
+
+      // Distribute payment to mark oldest unpaid ledger items as lunas
+      let paymentToDistribute = nominal;
+      const unpaidItems = ledger
+        .filter(l => l.karyawanId === empId && l.tipe === 'PESANAN' && l.nominal < 0 && !l.lunas)
+        .sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+      
+      for (let item of unpaidItems) {
+        const cost = Math.abs(item.nominal);
+        if (paymentToDistribute >= cost) {
+          item.lunas = true;
+          paymentToDistribute -= cost;
+        } else {
+          break;
+        }
+      }
+
+      // Log in ledger
+      const ledId = 'led-' + Date.now();
+      const newLed = { id: ledId, karyawanId: empId, tipe: 'TOPUP', nominal, keterangan, tanggal: new Date().toISOString() };
+      ledger.push(newLed);
+      saveDB('ledger', ledger);
+
+      closeBottomSheet();
+      triggerToast('success', 'Transaksi Top Up tunai berhasil dicatat!');
+      renderCurrentScreen();
+    }
+
+    function sendWhatsAppBilling(empId) {
+      const emp = employees.find(e => e.id === empId);
+      if (!emp || (emp.hutang === 0 && emp.deposit === 0)) return;
+
+      const tagihanAbs = emp.hutang;
+      const depositVal = emp.deposit;
+      const kekurangan = Math.max(0, tagihanAbs - depositVal);
+      
+      const unpaidOrders = ledger.filter(l => l.karyawanId === empId && l.tipe === 'PESANAN' && l.nominal < 0 && !l.lunas);
+      let itemsListText = '';
+      unpaidOrders.forEach(ord => {
+        const tglStr = new Date(ord.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+        itemsListText += `[${tglStr}] ${ord.keterangan} Rp${Math.abs(ord.nominal).toLocaleString('id-ID')}\n`;
+      });
+
+      let messageText = '';
+      if (tagihanAbs > 0) {
+        messageText += `${itemsListText}`;
+        messageText += `*Total Hutang: Rp ${tagihanAbs.toLocaleString('id-ID')}*\n`;
+      }
+      
+      if (depositVal > 0) {
+        messageText += `*Saldo Deposit: Rp ${depositVal.toLocaleString('id-ID')}*\n`;
+        if (tagihanAbs > 0) {
+          const sisaText = kekurangan > 0 
+            ? `Rp ${kekurangan.toLocaleString('id-ID')}`
+            : `Rp 0 (Lunas tercover deposit, sisa deposit menjadi Rp ${(depositVal - tagihanAbs).toLocaleString('id-ID')})`;
+          messageText += `*Sisa Kekurangan (setelah potong deposit): ${sisaText}*\n`;
+        }
+      }
+      
+      if (kekurangan > 0) {
+        messageText += `\nMohon untuk segera membayar kekurangan tagihan secara tunai atau transfer ya. Terima kasih!`;
+      } else {
+        messageText += `\nTerima kasih atas kerja samanya!`;
+      }
+      const encodedMsg = encodeURIComponent(messageText);
+      const waUrl = `https://wa.me/${emp.telepon}?text=${encodedMsg}`;
+
+      // Open a WhatsApp simulation visual preview box or load WhatsApp API link directly
+      openBottomSheet(`
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center">
+          <h3 class="font-extrabold text-slate-900 text-sm">WhatsApp Tagihan Preview</h3>
+          <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="bg-[#efeae2] p-4 rounded-2xl border border-amber-200/20 text-xs text-slate-800 space-y-2 mt-2 font-sans overflow-hidden">
+          <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200/50 max-w-full space-y-1.5 text-[10px] leading-relaxed relative">
+            <p class="font-bold text-emerald-800 mb-0.5">Buku Saku OB:</p>
+            
+            ${tagihanAbs > 0 ? `
+              <p class="font-mono text-[9px] whitespace-pre-wrap">${itemsListText}</p>
+              <p class="font-bold border-t border-dashed border-slate-100 pt-1 mt-1">Total Hutang: Rp ${tagihanAbs.toLocaleString('id-ID')}</p>
+            ` : ''}
+            
+            ${depositVal > 0 ? `
+              <div class="text-emerald-700 bg-emerald-50 border border-emerald-100 p-2 rounded-lg font-bold my-1">
+                <p>Deposit Aktif: Rp ${depositVal.toLocaleString('id-ID')}</p>
+                ${tagihanAbs > 0 ? `
+                  <p class="mt-0.5 text-[9px] text-indigo-700 border-t border-emerald-200/60 pt-1">
+                    Sisa Kekurangan: Rp ${kekurangan.toLocaleString('id-ID')}
+                  </p>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        <a href="${waUrl}" target="_blank" onclick="closeBottomSheet()" class="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-100">
+          <i data-lucide="message-square" class="w-4 h-4"></i> Buka WhatsApp & Kirim
+        </a>
+      `);
+    }
+
+
+    // --- SCREEN 3: KALKULATOR BELANJA SCREEN LOGIC ---
+    function renderBelanjaScreen(container) {
+      const totalBelanja = shoppingList.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+      const sisaBudget = shoppingBudget - totalBelanja;
+      const progressPercent = Math.min((totalBelanja / shoppingBudget) * 100, 100);
+      const sisaColorClass = sisaBudget < 0 ? 'text-red-500 font-extrabold' : 'text-emerald-500 font-extrabold';
+
+      // Get unique names of items previously bought
+      const uniqueItemsSet = new Set();
+      shoppingHistory.forEach(hist => {
+        if (hist.items) {
+          hist.items.forEach(item => {
+            if (item.nama) uniqueItemsSet.add(item.nama);
+          });
+        }
+      });
+      shoppingList.forEach(item => {
+        if (item.nama) uniqueItemsSet.add(item.nama);
+      });
+      const uniqueItems = Array.from(uniqueItemsSet);
+      const datalistOptionsHtml = uniqueItems.map(name => `<option value="${name}"></option>`).join('');
+
+      // Render tab bar first
+      let tabsHtml = `
+        <div class="flex bg-slate-200 p-0.5 rounded-xl text-xs font-bold text-slate-500 shrink-0">
+          <button onclick="setBelanjaFilter('troli')" class="flex-1 py-2 rounded-lg transition ${belanjaTabFilter === 'troli' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}">Troli Belanja (${shoppingList.length})</button>
+          <button onclick="setBelanjaFilter('riwayat')" class="flex-1 py-2 rounded-lg transition ${belanjaTabFilter === 'riwayat' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}">Riwayat Belanja (${shoppingHistory.length})</button>
+        </div>
+      `;
+
+      if (belanjaTabFilter === 'troli') {
+        let itemsHtml = '';
+        if (shoppingList.length === 0) {
+          itemsHtml = `
+            <div class="bg-white p-6 rounded-xl border border-slate-200/60 shadow-sm flex flex-col items-center justify-center text-center space-y-2">
+              <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-xs">Belanjaan Kosong</h4>
+                <p class="text-[10px] text-slate-400 max-w-[180px] mt-0.5">Masukkan belanjaan kantor ke troli melalui form di bawah.</p>
+              </div>
+            </div>
+          `;
+        } else {
+          itemsHtml = shoppingList.map(item => {
+            const itemSubtotal = item.harga * item.qty;
+            return `
+              <div class="bg-white px-3.5 py-3 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 text-[10px]">${item.qty}x</span>
+                  <div class="truncate">
+                    <p class="font-bold text-slate-800 truncate">${item.nama}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">@ Rp ${item.harga.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2.5 shrink-0 ml-2">
+                  <span class="font-bold font-mono text-slate-800">Rp ${itemSubtotal.toLocaleString('id-ID')}</span>
+                  <button onclick="removeShoppingItem('${item.id}')" class="text-red-400 hover:text-red-600 active:scale-95 transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        container.innerHTML = `
+          ${tabsHtml}
+
+          <!-- Sticky Budget Tracker Banner -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+            <div class="flex justify-between items-center text-xs text-slate-500 font-semibold">
+              <span>Budget Limit: Rp ${shoppingBudget.toLocaleString('id-ID')}</span>
+              <button onclick="promptEditBudget()" class="text-indigo-600 font-bold hover:underline flex items-center gap-0.5"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit</button>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div class="${sisaBudget < 0 ? 'bg-red-500' : 'bg-emerald-500'} h-2.5 rounded-full transition-all duration-300" style="width: ${progressPercent}%"></div>
+            </div>
+            <div class="flex justify-between items-center pt-1 border-t border-slate-100">
+              <div class="text-[11px] text-slate-500 font-medium">
+                Sisa Budget:
+              </div>
+              <div class="text-right">
+                <span class="text-base font-mono ${sisaColorClass}">Rp ${sisaBudget.toLocaleString('id-ID')}</span>
+                <span class="block text-[8px] text-slate-400 font-medium">Terpakai: Rp ${totalBelanja.toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Item Form -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <i data-lucide="plus" class="w-4 h-4 text-indigo-500"></i> Tambah Item ke Troli
+            </h4>
+            <form onsubmit="addShoppingItem(event)" class="space-y-2.5">
+              <div class="grid grid-cols-12 gap-2">
+                <input type="text" id="shopItemNama" list="shopPastItems" oninput="handleShoppingItemNameChange(this)" placeholder="Nama Barang (misal: Sabun Cuci)" class="col-span-12 p-2 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+                <datalist id="shopPastItems">
+                  ${datalistOptionsHtml}
+                </datalist>
+                <input type="text" id="shopItemHarga" oninput="formatNumberInput(this)" placeholder="Harga Satuan (Rp)" class="col-span-7 p-2 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+                <input type="number" id="shopItemQty" value="1" min="1" placeholder="Qty" class="col-span-3 p-2 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none text-center" required>
+                <button type="submit" class="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition shadow-md active:scale-95">
+                  <i data-lucide="plus" class="w-5 h-5"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Trolley Items List -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center px-1">
+              <h4 class="text-xs font-bold text-slate-400 tracking-wide uppercase">Daftar Belanjaan</h4>
+              ${shoppingList.length > 0 ? `
+                <button onclick="clearShoppingList()" class="text-[10px] text-red-500 font-bold flex items-center gap-0.5">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i> Kosongkan
+                </button>
+              ` : ''}
+            </div>
+            <!-- SCROLLABLE LIST CONTAINER ONLY -->
+            <div class="max-h-[160px] overflow-y-auto no-scrollbar pr-1 space-y-2.5">
+              ${itemsHtml}
+            </div>
+          </div>
+
+          ${shoppingList.length > 0 ? `
+            <button onclick="completeShopping()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 shrink-0">
+              <i data-lucide="check-circle" class="w-4 h-4"></i> Selesaikan Belanja & Simpan
+            </button>
+          ` : ''}
+        `;
+      } else {
+        // Render Shopping History Page
+        let historyListHtml = '';
+        if (shoppingHistory.length === 0) {
+          historyListHtml = `
+            <div class="flex flex-col items-center justify-center text-center py-16 px-4 space-y-3">
+              <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+                <i data-lucide="folder-open" class="w-8 h-8"></i>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-slate-800 text-xs text-center w-full">Riwayat Kosong</h4>
+                <p class="text-[10px] text-slate-400 max-w-[200px] mt-0.5">Belum ada riwayat belanja kantor yang diselesaikan.</p>
+              </div>
+            </div>
+          `;
+        } else {
+          historyListHtml = shoppingHistory.map((hist, idx) => {
+            const dateStr = new Date(hist.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            return `
+              <div class="bg-white p-4 rounded-xl border border-slate-100 flex justify-between items-center text-xs shadow-sm">
+                <div>
+                  <p class="font-bold text-slate-800">Belanja Stok Kantor #${idx+1}</p>
+                  <p class="text-[10px] text-slate-400 mt-0.5">${dateStr} • ${hist.itemCount} Barang</p>
+                </div>
+                <span class="font-bold font-mono text-slate-800 font-extrabold">Rp ${hist.total.toLocaleString('id-ID')}</span>
+              </div>
+            `;
+          }).reverse().join('');
+        }
+
+        container.innerHTML = `
+          ${tabsHtml}
+          
+          <div class="space-y-2.5">
+            <h4 class="text-xs font-bold text-slate-400 tracking-wide uppercase px-1">Daftar Belanja Selesai</h4>
+            <div class="space-y-2">
+              ${historyListHtml}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function setBelanjaFilter(filter) {
+      belanjaTabFilter = filter;
+      renderCurrentScreen();
+    }
+
+    function promptEditBudget() {
+      openBottomSheet(`
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center">
+          <h3 class="font-extrabold text-slate-900 text-sm">Ubah Limit Budget Belanja</h3>
+          <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <form onsubmit="saveNewBudget(event)" class="space-y-3 pt-2">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 block mb-1">Limit Budget Kantor (Rp)</label>
+            <input type="text" id="budgetLimitInput" oninput="formatNumberInput(this)" value="${shoppingBudget.toLocaleString('id-ID')}" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+          </div>
+          <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100">Simpan Budget</button>
+        </form>
+      `);
+    }
+
+    function saveNewBudget(e) {
+      e.preventDefault();
+      const newBudget = parseFormattedNumber(document.getElementById('budgetLimitInput').value);
+      shoppingBudget = newBudget;
+      localStorage.setItem('ob_budget', newBudget);
+      closeBottomSheet();
+      triggerToast('success', 'Limit budget belanja diperbarui!');
+      renderCurrentScreen();
+    }
+
+    function addShoppingItem(e) {
+      e.preventDefault();
+      const nama = capitalizeFirst(document.getElementById('shopItemNama').value);
+      const harga = parseFormattedNumber(document.getElementById('shopItemHarga').value);
+      const qty = parseInt(document.getElementById('shopItemQty').value);
+
+      const newItem = { id: 'item-' + Date.now(), nama, harga, qty };
+      shoppingList.push(newItem);
+      saveDB('shoppingList', shoppingList);
+
+      // Trigger warning toast if total budget is exceeded
+      const totalBelanja = shoppingList.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+      if (totalBelanja > shoppingBudget) {
+        triggerToast('danger', 'Perhatian: Total belanjaan Anda melebihi limit budget!');
+      } else {
+        triggerToast('success', 'Item berhasil ditambahkan ke keranjang!');
+      }
+
+      // Reset form
+      document.getElementById('shopItemNama').value = '';
+      document.getElementById('shopItemHarga').value = '';
+      document.getElementById('shopItemQty').value = '1';
+
+      renderCurrentScreen();
+    }
+
+    function removeShoppingItem(itemId) {
+      shoppingList = shoppingList.filter(item => item.id !== itemId);
+      saveDB('shoppingList', shoppingList);
+      triggerToast('success', 'Item belanjaan dihapus.');
+      renderCurrentScreen();
+    }
+
+    function clearShoppingList() {
+      showCustomConfirm(
+        'Kosongkan Troli?',
+        'Apakah Anda yakin ingin menghapus semua item belanjaan dari troli? Tindakan ini tidak dapat dibatalkan.',
+        () => {
+          shoppingList = [];
+          saveDB('shoppingList', shoppingList);
+          triggerToast('success', 'Troli belanjaan berhasil dikosongkan.');
+          renderCurrentScreen();
+        }
+      );
+    }
+
+    function completeShopping() {
+      const totalBelanja = shoppingList.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+      const record = {
+        id: 'hist-' + Date.now(),
+        tanggal: new Date().toISOString(),
+        total: totalBelanja,
+        itemCount: shoppingList.length,
+        items: shoppingList
+      };
+
+      shoppingHistory.push(record);
+      saveDB('shoppingHistory', shoppingHistory);
+
+      // Clear current list
+      shoppingList = [];
+      saveDB('shoppingList', shoppingList);
+
+      triggerToast('success', 'Belanja selesai! Rekonsiliasi struk tersimpan di riwayat.');
+      renderCurrentScreen();
+    }
+
+    function handleShoppingItemNameChange(input) {
+      const name = input.value.trim();
+      if (!name) return;
+
+      let foundPrice = null;
+      
+      // Look up inside current list
+      const itemInCurrent = shoppingList.find(item => item.nama.toLowerCase() === name.toLowerCase());
+      if (itemInCurrent) {
+        foundPrice = itemInCurrent.harga;
+      } else {
+        // Look up inside historical records (newest to oldest)
+        for (let i = shoppingHistory.length - 1; i >= 0; i--) {
+          const hist = shoppingHistory[i];
+          if (hist.items) {
+            const histItem = hist.items.find(item => item.nama.toLowerCase() === name.toLowerCase());
+            if (histItem) {
+              foundPrice = histItem.harga;
+              break;
+            }
+          }
+        }
+      }
+
+      if (foundPrice !== null) {
+        const priceInput = document.getElementById('shopItemHarga');
+        if (priceInput) {
+          priceInput.value = foundPrice.toLocaleString('id-ID');
+        }
+      }
+    }
+
+
+    // --- SCREEN 4: ABSENSI SCREEN LOGIC ---
+    function renderAbsenScreen(container) {
+      // Find today's attendance logs
+      const today = new Date().toISOString().split('T')[0];
+      const todayLog = attendance.find(a => a.tanggal === today);
+
+      let buttonStateClass = 'bg-emerald-500 hover:bg-emerald-600 border-emerald-100 shadow-emerald-500/20';
+      let buttonText = 'CHECK IN';
+      let statusText = 'Status: Belum Absen Hari Ini';
+
+      if (todayLog) {
+        if (todayLog.checkIn && !todayLog.checkOut) {
+          buttonStateClass = 'bg-red-500 hover:bg-red-600 border-red-100 shadow-red-500/20';
+          buttonText = 'CHECK OUT';
+          statusText = `Status: Sudah Masuk (Check-In: ${todayLog.checkIn})`;
+        } else if (todayLog.checkIn && todayLog.checkOut) {
+          buttonStateClass = 'bg-slate-400/80 cursor-not-allowed border-slate-100 shadow-slate-400/10';
+          buttonText = 'SELESAI';
+          statusText = `Status: Kerja Hari Ini Selesai (${todayLog.checkIn} - ${todayLog.checkOut})`;
+        }
+      }
+
+      // Filtered logs
+      let filteredLogs = attendance.filter(log => {
+        if (!log.checkOut) return false; // Don't show active checkins in historical logs
+        const logDate = log.tanggal;
+        return logDate >= attendanceFilterFrom && logDate <= attendanceFilterTo;
+      }).sort((a,b) => b.tanggal.localeCompare(a.tanggal));
+
+      let logListHtml = '';
+      if (filteredLogs.length === 0) {
+        logListHtml = `
+          <div class="py-6 text-center text-xs text-slate-400 font-semibold">Tidak ada riwayat absen di rentang tanggal ini</div>
+        `;
+      } else {
+        logListHtml = filteredLogs.map(log => {
+          const dateStr = new Date(log.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          return `
+            <div class="px-4 py-2.5 flex justify-between items-center text-xs">
+              <span class="font-medium text-slate-600">${dateStr}</span>
+              <span class="text-emerald-600 font-extrabold font-mono">${log.checkIn} - ${log.checkOut}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      container.innerHTML = `
+        <!-- Digital Clock Display Widget -->
+        <div class="bg-white py-6 rounded-2xl border border-slate-200/60 shadow-sm text-center space-y-1.5">
+          <p class="text-[10px] font-bold text-slate-400 tracking-widest uppercase">${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <h1 id="digitalClock" class="text-4xl font-extrabold text-slate-800 tracking-tight font-mono">00:00:00</h1>
+        </div>
+
+        <!-- Attendance Button -->
+        <div class="flex flex-col items-center py-6">
+          <button onclick="handleAbsencePulse()" class="w-36 h-36 rounded-full flex flex-col items-center justify-center text-white border-8 transition-all duration-300 active:scale-95 shadow-xl ${buttonStateClass}">
+            <i data-lucide="fingerprint" class="w-12 h-12 mb-1.5"></i>
+            <span class="text-sm font-extrabold tracking-wider">${buttonText}</span>
+          </button>
+          <p class="text-xs text-slate-500 mt-4 font-semibold">${statusText}</p>
+        </div>
+
+        <!-- Historical Report Logs -->
+        <div class="border-t border-slate-200/80 pt-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-bold text-slate-400 tracking-wide uppercase">Laporan Bulanan Mandiri</h4>
+            <button onclick="promptAbsenceFilterRange()" class="text-[10px] text-indigo-600 font-bold flex items-center gap-1">
+              <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Rentang Waktu
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200/60 divide-y divide-slate-100 overflow-hidden shadow-sm">
+            ${logListHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function handleAbsencePulse() {
+      const today = new Date().toISOString().split('T')[0];
+      const todayLog = attendance.find(a => a.tanggal === today);
+      const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+
+      if (!todayLog) {
+        // Create Check In log
+        const log = { tanggal: today, checkIn: currentTime, checkOut: null };
+        attendance.push(log);
+        saveDB('attendance', attendance);
+        triggerToast('success', `Check In masuk berhasil dicatat pukul ${currentTime}!`);
+      } else if (todayLog.checkIn && !todayLog.checkOut) {
+        // Create Check Out log
+        todayLog.checkOut = currentTime;
+        saveDB('attendance', attendance);
+        triggerToast('success', `Check Out pulang berhasil dicatat pukul ${currentTime}!`);
+      } else {
+        triggerToast('danger', 'Anda sudah melakukan absen masuk & pulang untuk hari ini!');
+      }
+
+      renderCurrentScreen();
+    }
+
+    function promptAbsenceFilterRange() {
+      openBottomSheet(`
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
+        <div class="flex justify-between items-center">
+          <h3 class="font-extrabold text-slate-900 text-sm">Rentang Tanggal Laporan</h3>
+          <button onclick="closeBottomSheet()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <form onsubmit="saveAbsenceFilterRange(event)" class="space-y-3 pt-2">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Dari Tanggal</label>
+              <input type="date" id="filterFromInput" value="${attendanceFilterFrom}" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 block mb-1">Sampai Tanggal</label>
+              <input type="date" id="filterToInput" value="${attendanceFilterTo}" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" required>
+            </div>
+          </div>
+          <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100">Filter Laporan</button>
+        </form>
+      `);
+    }
+
+    function saveAbsenceFilterRange(e) {
+      e.preventDefault();
+      attendanceFilterFrom = document.getElementById('filterFromInput').value;
+      attendanceFilterTo = document.getElementById('filterToInput').value;
+      closeBottomSheet();
+      triggerToast('success', 'Rentang tanggal filter jam kerja diterapkan.');
+      renderCurrentScreen();
+    }
+
+
+    // --- SYNC SYSTEM SIMULATION ---
+    let localMode = 'offline'; 
+    function triggerSyncSimulation() {
+      const icon = document.getElementById('syncIcon');
+      const text = document.getElementById('syncText');
+
+      if (localMode === 'offline') {
+        localMode = 'syncing';
+        icon.className = "w-3.5 h-3.5 text-blue-300 animate-spin";
+        text.className = "text-[9px] font-bold text-blue-300";
+        text.innerText = "Sinkron...";
+        
+        setTimeout(() => {
+          localMode = 'synced';
+          icon.className = "w-3.5 h-3.5 text-emerald-400";
+          text.className = "text-[9px] font-bold text-emerald-400";
+          text.innerText = "Cloud";
+          triggerToast('success', 'Data lokal berhasil dicadangkan ke Cloud Supabase!');
+        }, 1500);
+      } else if (localMode === 'synced') {
+        localMode = 'offline';
+        icon.className = "w-3.5 h-3.5 text-amber-300";
+        text.className = "text-[9px] font-bold text-amber-300";
+        text.innerText = "Lokal";
+        triggerToast('success', 'Mode lokal offline aktif.');
+      }
+    }
+
+
+    // --- UTILITIES: RESET / DUMMY RE-POPULATION ---
+    function resetData() {
+      showCustomConfirm(
+        'Setel Ulang Data?',
+        'Apakah Anda yakin ingin menyetel ulang semua data simulasi ke kondisi bawaan? Semua data transaksi lama akan dihapus.',
+        () => {
+          localStorage.removeItem('ob_employees');
+          localStorage.removeItem('ob_orders');
+          localStorage.removeItem('ob_ledger');
+          localStorage.removeItem('ob_attendance');
+          localStorage.removeItem('ob_shoppingList');
+          localStorage.removeItem('ob_shoppingHistory');
+          localStorage.removeItem('ob_budget');
+          
+          employees = [...DEFAULT_EMPLOYEES];
+          orders = [...DEFAULT_ORDERS];
+          ledger = [...DEFAULT_LEDGER];
+          attendance = [];
+          shoppingList = [];
+          shoppingHistory = [];
+          shoppingBudget = 500000;
+          
+          currentLedgerEmployeeId = null;
+          activeScreen = 'pesanan';
+          
+          triggerToast('success', 'Semua data simulasi berhasil disetel ulang.');
+          switchScreen('pesanan');
+        },
+        'Ya, Reset'
+      );
+    }
+
+    // --- ONBOARDING: SPLASH, LANDING, LOGIN, REGISTER SCREENS ---
+    function renderSplash(container) {
+      container.innerHTML = `
+        <div class="flex-grow flex flex-col items-center justify-center space-y-6 animate-fade-in p-6 my-auto">
+          <div class="w-20 h-20 rounded-3xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-200 animate-pulse">
+            <i data-lucide="pocket" class="w-12 h-12"></i>
+          </div>
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Buku Saku OB</h2>
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Sistem Kas & Pesanan Harian</p>
+          </div>
+          <div class="w-12 h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
+            <div class="absolute inset-y-0 left-0 bg-indigo-600 w-1/2 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      `;
+      setTimeout(() => {
+        const session = localStorage.getItem('ob_session');
+        if (session) {
+          switchScreen('pesanan');
+        } else {
+          switchScreen('landing');
+        }
+      }, 1800);
+    }
+
+    function renderLanding(container) {
+      container.innerHTML = `
+        <div class="flex flex-col justify-between p-6 h-full flex-grow">
+          <div class="space-y-6 my-auto">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <i data-lucide="pocket" class="w-4.5 h-4.5"></i>
+              </div>
+              <span class="font-extrabold text-sm text-slate-900">Buku Saku OB</span>
+            </div>
+            
+            <div class="space-y-4">
+              <h2 class="text-3xl font-black text-slate-900 leading-tight tracking-tight">
+                Kelola pesanan kantin jadi lebih mudah.
+              </h2>
+              <p class="text-xs text-slate-500 leading-relaxed">
+                Buku Saku OB membantu Office Boy mencatat pesanan harian karyawan, melacak kas talangan, deposit, dan rekap absen dengan cepat.
+              </p>
+            </div>
+            
+            <div class="space-y-3.5">
+              <div class="flex items-start gap-3">
+                <span class="p-2 bg-indigo-50 rounded-xl text-indigo-600 mt-0.5"><i data-lucide="clipboard-list" class="w-4 h-4"></i></span>
+                <div>
+                  <h4 class="text-xs font-extrabold text-slate-800">Catat Pesanan Instan</h4>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Pantau menu makanan & minuman karyawan yang harus dibeli.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="p-2 bg-emerald-50 rounded-xl text-emerald-600 mt-0.5"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+                <div>
+                  <h4 class="text-xs font-extrabold text-slate-800">Buku Kas & Saldo Deposit</h4>
+                  <p class="text-[10px] text-slate-400 mt-0.5">Pisahkan catatan hutang talangan dan saldo deposit staf secara transparan.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-2.5 pt-6 border-t border-slate-100 mt-6">
+            <button onclick="switchScreen('login')" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-1.5 active:scale-95">
+              Masuk Sekarang
+            </button>
+            <button onclick="switchScreen('register')" class="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95">
+              Daftar Akun Baru
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLogin(container) {
+      container.innerHTML = `
+        <div class="flex flex-col justify-between p-6 h-full flex-grow">
+          <div class="space-y-6 my-auto">
+            <div class="space-y-2">
+              <button onclick="switchScreen('landing')" class="text-slate-400 hover:text-slate-600"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Selamat Datang Kembali</h2>
+              <p class="text-xs text-slate-400 font-semibold">Silakan masuk menggunakan nomor telepon Anda</p>
+            </div>
+            
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomor Telepon</label>
+                <input type="tel" id="loginTel" placeholder="contoh: 6281234567890" class="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" required>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">PIN Keamanan (4 Digit)</label>
+                <input type="password" id="loginPin" maxlength="4" placeholder="••••" class="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-center tracking-widest font-mono" required>
+              </div>
+              <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-1.5 active:scale-95">
+                Masuk Aplikasi
+              </button>
+            </form>
+          </div>
+          
+          <div class="text-center text-[10px] text-slate-400 font-semibold pt-6 border-t border-slate-100 mt-6">
+            Belum punya akun? <a onclick="switchScreen('register')" class="text-indigo-600 hover:underline cursor-pointer">Daftar sekarang</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRegister(container) {
+      container.innerHTML = `
+        <div class="flex flex-col justify-between p-6 h-full flex-grow">
+          <div class="space-y-6 my-auto">
+            <div class="space-y-2">
+              <button onclick="switchScreen('landing')" class="text-slate-400 hover:text-slate-600"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Daftar Akun OB Baru</h2>
+              <p class="text-xs text-slate-400 font-semibold">Buat akun untuk mulai mengelola kas dan pesanan</p>
+            </div>
+            
+            <form onsubmit="handleRegisterSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Lengkap</label>
+                <input type="text" id="regNama" placeholder="Nama Anda" class="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" required oninput="capitalizeInput(this)">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nomor Telepon WhatsApp</label>
+                <input type="tel" id="regTel" placeholder="contoh: 6281234567890" class="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" required>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Buat PIN (4 Digit)</label>
+                <input type="password" id="regPin" maxlength="4" placeholder="••••" class="w-full border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 text-center tracking-widest font-mono" required>
+              </div>
+              <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-1.5 active:scale-95">
+                Daftar & Mulai
+              </button>
+            </form>
+          </div>
+          
+          <div class="text-center text-[10px] text-slate-400 font-semibold pt-6 border-t border-slate-100 mt-6">
+            Sudah punya akun? <a onclick="switchScreen('login')" class="text-indigo-600 hover:underline cursor-pointer">Masuk di sini</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const tel = document.getElementById('loginTel').value.trim();
+      const pin = document.getElementById('loginPin').value.trim();
+
+      pendingTel = tel;
+      pendingNama = 'User OB';
+      pendingPin = pin;
+      
+      switchScreen('otp');
+    }
+
+    function handleRegisterSubmit(e) {
+      e.preventDefault();
+      const nama = document.getElementById('regNama').value.trim();
+      const tel = document.getElementById('regTel').value.trim();
+      const pin = document.getElementById('regPin').value.trim();
+
+      pendingTel = tel;
+      pendingNama = nama;
+      pendingPin = pin;
+
+      switchScreen('otp');
+    }
+
+    function renderOtp(container) {
+      container.innerHTML = `
+        <div class="flex flex-col justify-between p-6 h-full flex-grow">
+          <div class="space-y-6 my-auto">
+            <div class="space-y-2">
+              <button onclick="switchScreen('landing')" class="text-slate-400 hover:text-slate-600"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+              <div class="mt-2">
+                <span class="inline-flex items-center gap-1 text-[8px] bg-amber-50 text-amber-600 border border-amber-200 font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full">
+                  <i data-lucide="alert-circle" class="w-3 h-3"></i> Belum Diverifikasi
+                </span>
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight mt-3">Masukkan Kode OTP</h2>
+              <p class="text-xs text-slate-400 font-semibold leading-relaxed">
+                Nomor telepon <span class="text-slate-800 font-bold">${pendingTel}</span> belum diverifikasi. 
+                Kode verifikasi OTP 4 digit telah dikirim melalui WhatsApp. Silakan masukkan kode untuk melanjutkan.
+              </p>
+            </div>
+            
+            <form onsubmit="handleOtpSubmit(event)" class="space-y-4">
+              <div class="space-y-2">
+                <input type="text" id="otpCode" maxlength="4" placeholder="0 0 0 0" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-lg font-bold text-center tracking-[1.5em] font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" required onkeypress="return isNumberKey(event)">
+                <span class="block text-center text-[10px] text-slate-400">Gunakan kode simulasi: <strong class="text-indigo-600">1234</strong></span>
+              </div>
+              <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-100 flex items-center justify-center gap-1.5 active:scale-95">
+                Verifikasi & Masuk
+              </button>
+            </form>
+          </div>
+          
+          <div class="text-center text-[10px] text-slate-400 font-semibold pt-6 border-t border-slate-100 mt-6 flex justify-between items-center">
+            <span>Tidak menerima kode?</span>
+            <button onclick="triggerToast('success', 'Kode OTP baru telah dikirim!')" class="text-indigo-600 font-bold hover:underline">Kirim Ulang</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleOtpSubmit(e) {
+      e.preventDefault();
+      const code = document.getElementById('otpCode').value.trim();
+
+      if (code !== '1234') {
+        triggerToast('danger', 'Kode OTP salah! Silakan coba lagi.');
+        return;
+      }
+
+      // Successful verification
+      const existing = employees.find(emp => emp.telepon === pendingTel);
+      if (!existing && pendingNama !== 'User OB') {
+        const id = 'emp-' + Date.now();
+        employees.push({ id, nama: pendingNama, telepon: pendingTel, deposit: 0, hutang: 0 });
+        saveDB('employees', employees);
+      }
+
+      localStorage.setItem('ob_session', JSON.stringify({ tel: pendingTel, nama: pendingNama }));
+      triggerToast('success', 'Verifikasi berhasil! Selamat datang.');
+      switchScreen('pesanan');
+    }
+
+    function handleLogout() {
+      showCustomConfirm(
+        'Keluar Akun?',
+        'Apakah Anda yakin ingin keluar dari akun Buku Saku OB?',
+        () => {
+          localStorage.removeItem('ob_session');
+          switchScreen('landing');
+        },
+        'Ya, Keluar'
+      );
+    }
+  </script>
+</body>
+</html>

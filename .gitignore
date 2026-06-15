@@ -1,0 +1,21 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+dist/
+
+# Kredensial Rahasia
+app/.env
+app/.env.*
+.env
+.env.*
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.thumbs
+.DS_Store
