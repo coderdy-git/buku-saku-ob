@@ -1,31 +1,26 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   // Import Icon resmi Lucide
   import { ShoppingBag, Trash2 } from '@lucide/svelte';
+  import { parseFormattedNumber, generateId } from '../utils.js';
   
-  const dispatch = createEventDispatcher();
-  
-  export let shoppingList = [];
-  export let shoppingBudget = 500000;
-  export let belanjaTabFilter = 'troli'; // troli | riwayat
-  export let shoppingHistory = [];
+  let { shoppingList = [], shoppingBudget = 500000, belanjaTabFilter = 'troli', shoppingHistory = [], onfilter, onaddtotrolley, onremoveitem, oncheckout, oneditbudget } = $props();
 
-  let itemName = '';
-  let itemPriceStr = '';
-  let itemQty = 1;
-  let isAutocompleteOpen = false;
-  let autocompleteSuggestions = [];
+  let itemName = $state('');
+  let itemPriceStr = $state('');
+  let itemQty = $state(1);
+  let isAutocompleteOpen = $state(false);
+  let autocompleteSuggestions = $state([]);
 
   // Hitung total harga troli saat ini
-  $: totalTroli = shoppingList.reduce((acc, item) => acc + (item.price * item.qty), 0);
-  $: percentBudget = Math.min((totalTroli / shoppingBudget) * 100, 100);
+  let totalTroli = $derived(shoppingList.reduce((acc, item) => acc + (item.price * item.qty), 0));
+  let percentBudget = $derived(Math.min((totalTroli / shoppingBudget) * 100, 100));
 
   // Cari item unik dari riwayat belanja untuk autocomplete
-  $: allUniquePastItems = Array.from(
+  let allUniquePastItems = $derived(Array.from(
     new Map(
       shoppingHistory.flatMap(h => h.items || []).map(item => [item.name.toLowerCase(), item])
     ).values()
-  );
+  ));
 
   function handleItemNameInput(e) {
     const val = e.target.value;
@@ -55,23 +50,18 @@
     }
   }
 
-  function parseFormattedNumber(valString) {
-    if (!valString) return 0;
-    return parseFloat(valString.replace(/\./g, "")) || 0;
-  }
-
   function addToTrolley() {
     if (!itemName || !itemPriceStr) return;
     
     const price = parseFormattedNumber(itemPriceStr);
     const item = {
-      id: 'item-' + Date.now(),
+      id: generateId('item'),
       name: itemName.charAt(0).toUpperCase() + itemName.slice(1),
       price,
       qty: itemQty
     };
 
-    dispatch('addToTrolley', item);
+    onaddtotrolley?.(item);
 
     // Reset input
     itemName = '';
@@ -83,13 +73,13 @@
 <!-- Tabs -->
 <div class="flex bg-slate-200 p-0.5 rounded-xl text-xs font-bold text-slate-500 mb-4">
   <button 
-    on:click={() => dispatch('filter', 'troli')} 
+    onclick={() => onfilter?.('troli')} 
     class="flex-1 py-2 rounded-lg transition-all {belanjaTabFilter === 'troli' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}"
   >
     Troli Aktif
   </button>
   <button 
-    on:click={() => dispatch('filter', 'riwayat')} 
+    onclick={() => onfilter?.('riwayat')} 
     class="flex-1 py-2 rounded-lg transition-all {belanjaTabFilter === 'riwayat' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}"
   >
     Riwayat Belanja
@@ -106,7 +96,7 @@
         <div class="text-slate-900 font-mono flex items-center gap-1">
           <span>Rp {totalTroli.toLocaleString('id-ID')} / </span>
           <button 
-            on:click={() => dispatch('editBudget')} 
+            onclick={() => oneditbudget?.()} 
             class="text-indigo-600 hover:text-indigo-800 underline focus:outline-none"
             title="Klik untuk ubah budget limit"
           >
@@ -129,14 +119,14 @@
             type="text" 
             placeholder="Nama Barang (contoh: Kopi, Gula, Teh)" 
             value={itemName}
-            on:input={handleItemNameInput}
+            oninput={handleItemNameInput}
             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500 font-medium"
           />
           {#if isAutocompleteOpen}
             <div class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-36 overflow-y-auto">
               {#each autocompleteSuggestions as sug}
                 <button 
-                  on:click={() => selectSuggestion(sug)}
+                  onclick={() => selectSuggestion(sug)}
                   class="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors font-medium text-slate-800 border-b border-slate-100"
                 >
                   {sug.name} <span class="text-[10px] text-slate-400 font-bold ml-1">(Terakhir: Rp {sug.price.toLocaleString('id-ID')})</span>
@@ -152,7 +142,7 @@
             type="text" 
             placeholder="Harga Satuan (Rp)" 
             value={itemPriceStr}
-            on:input={handlePriceInput}
+            oninput={handlePriceInput}
             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-500 font-bold font-mono"
           />
         </div>
@@ -170,7 +160,7 @@
       </div>
       
       <button 
-        on:click={addToTrolley}
+        onclick={addToTrolley}
         class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition focus:outline-none"
       >
         Tambah ke Troli
@@ -183,7 +173,7 @@
         <h5 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">BARANG DI TROLI</h5>
         {#if shoppingList.length > 0}
           <button 
-            on:click={() => dispatch('checkout')}
+            onclick={() => oncheckout?.()}
             class="text-[10px] text-emerald-600 font-bold hover:text-emerald-700 focus:outline-none"
           >
             Selesaikan & Simpan Struk
@@ -209,7 +199,7 @@
                 Rp {(tItem.price * tItem.qty).toLocaleString('id-ID')}
               </span>
               <button 
-                on:click={() => dispatch('removeItem', tItem.id)}
+                onclick={() => onremoveitem?.(tItem.id)}
                 class="text-red-500 hover:text-red-700 focus:outline-none"
               >
                 <Trash2 class="w-4 h-4" />

@@ -1,13 +1,15 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { formatPhoneWA, generateId } from '../utils.js';
+  import { supabase } from '../supabaseClient.js';
   
-  const dispatch = createEventDispatcher();
+  let { onsuccess, onback } = $props();
   
-  let name = '';
-  let phone = '';
-  let pin = '';
-  let errorMsg = '';
-  let loading = false;
+  let name = $state('');
+  let phone = $state('');
+  let pin = $state('');
+  let pinConfirm = $state('');
+  let errorMsg = $state('');
+  let loading = $state(false);
 
   async function handleRegister() {
     // 1. Validasi Input
@@ -15,7 +17,7 @@
       errorMsg = 'Nama Lengkap wajib diisi';
       return;
     }
-    if (name.trim().length < 3 || !/^[a-zA-Z\s]+$/.test(name)) {
+    if (name.trim().length < 3 || !/^[\p{L}\s'.,-]+$/u.test(name)) {
       errorMsg = 'Nama minimal 3 karakter & hanya mengandung huruf';
       return;
     }
@@ -35,28 +37,69 @@
       errorMsg = 'PIN baru harus berupa 6 digit angka';
       return;
     }
+    if (pin !== pinConfirm) {
+      errorMsg = 'Konfirmasi PIN tidak cocok';
+      return;
+    }
     
     loading = true;
     errorMsg = '';
 
-    // Simulasi Register (Akan dihubungkan ke database Supabase nanti)
-    setTimeout(() => {
+try {
+      const formattedPhone = formatPhoneWA(phone);
+      
+      // Supabase Auth SignUp
+      const email = `${formattedPhone}@bukusakuob.local`;
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: pin
+      });
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+          errorMsg = 'Nomor HP ini sudah terdaftar';
+        } else {
+          errorMsg = `Gagal mendaftar: ${authError.message}`;
+        }
+        loading = false;
+        return;
+      }
+
+      // Insert profile data to operators table using authData.user.id
+      const newName = name.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
+      const { error } = await supabase.from('operators').insert([{
+        id: authData.user.id,
+        nama: newName,
+        telepon: formattedPhone
+      }]);
+
+      if (error) {
+        errorMsg = 'Gagal menyimpan profil: ' + error.message;
+        loading = false;
+        return;
+      }
+
       loading = false;
-      const userData = {
-        nama: name.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' '),
-        telepon: '62' + phone,
-        verified: false // Memicu verifikasi OTP
-      };
-      localStorage.setItem('ob_session', JSON.stringify(userData));
-      dispatch('success', userData);
-    }, 1000);
+      onsuccess?.({
+        id: authData.user.id,
+        nama: newName,
+        telepon: formattedPhone,
+        verified: false
+      });
+
+    } catch (e) {
+      errorMsg = 'Koneksi ke server gagal.';
+    } finally {
+      loading = false;
+    }
   }
 </script>
 
 <div class="flex-grow flex flex-col justify-between p-8 bg-white h-full overflow-y-auto">
   <!-- Header back navigation -->
   <div>
-    <button on:click={() => dispatch('back')} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-2 mb-8 focus:outline-none">
+    <button onclick={() => onback?.()} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-2 mb-8 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
@@ -107,6 +150,20 @@
         />
       </div>
 
+      <div>
+        <label for="pinConfirm" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Konfirmasi PIN</label>
+        <input 
+          type="password" 
+          id="pinConfirm" 
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="6"
+          bind:value={pinConfirm}
+          placeholder="••••••" 
+          class="w-full px-4 py-3 bg-slate-50 text-slate-900 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:bg-white tracking-[0.5em] text-center transition-all font-bold"
+        />
+      </div>
+
       {#if errorMsg}
         <div class="p-3 bg-red-50 text-red-600 rounded-lg text-xs font-semibold border border-red-100 mt-1">
           {errorMsg}
@@ -118,7 +175,7 @@
   <!-- Action Button -->
   <div class="mt-8">
     <button 
-      on:click={handleRegister}
+      onclick={handleRegister}
       disabled={loading}
       class="w-full py-3 bg-brand-600 text-white font-medium rounded-xl hover:bg-brand-700 active:scale-[0.98] transition-all text-sm focus:outline-none shadow-md shadow-brand-100 flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
     >

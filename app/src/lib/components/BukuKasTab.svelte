@@ -1,16 +1,11 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   // Import Icon resmi Lucide
   import { Share2, ChevronLeft, Users, Plus } from '@lucide/svelte';
   
-  const dispatch = createEventDispatcher();
-  
-  export let employees = [];
-  export let activeEmployeeId = null; // Menyimpan ID karyawan jika masuk ke view detail
-  export let ledger = [];
+  let { employees = [], activeEmployeeId = null, ledger = [], onback, onselectemployee, onaddemployee, onsharewa, onpayortopup } = $props();
 
-  $: selectedEmp = employees.find(e => e.id === activeEmployeeId);
-  $: empLedger = ledger.filter(l => l.karyawanId === activeEmployeeId).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+  let selectedEmp = $derived(employees.find(e => e.id === activeEmployeeId));
+  let empLedger = $derived(ledger.filter(l => l.karyawanId === activeEmployeeId).sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)));
 
   function getNetBalance(emp) {
     return emp.deposit - emp.hutang;
@@ -21,13 +16,13 @@
   <!-- DETAIL VIEW LEDGER KARYAWAN -->
   <div class="space-y-4">
     <div class="flex items-center justify-between">
-      <button on:click={() => dispatch('back')} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-1.5 focus:outline-none">
+      <button onclick={() => onback?.()} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-1.5 focus:outline-none">
         <ChevronLeft class="w-4.5 h-4.5 mr-0.5" />
         <span class="text-xs font-semibold">Kembali</span>
       </button>
 
       <button 
-        on:click={() => dispatch('shareWA', selectedEmp)}
+        onclick={() => onsharewa?.(selectedEmp)}
         class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100 rounded-lg text-[10px] font-bold flex items-center gap-1 focus:outline-none"
       >
         <Share2 class="w-3.5 h-3.5" /> Kirim Tagihan WA
@@ -62,7 +57,7 @@
 
       <div class="flex gap-2">
         <button 
-          on:click={() => dispatch('payOrTopup', selectedEmp)}
+          onclick={() => onpayortopup?.(selectedEmp)}
           class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md shadow-brand-100 transition-all focus:outline-none"
         >
           Bayar / Top Up
@@ -85,10 +80,15 @@
                   {new Date(item.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'}).replace('.', ':')}
                 </span>
               </div>
-              <div class="text-right shrink-0">
+              <div class="text-right shrink-0 flex flex-col items-end gap-1">
                 <span class="text-xs font-bold font-mono {item.nominal < 0 ? 'text-red-500' : 'text-emerald-600'}">
                   {item.nominal < 0 ? '-' : '+'}{Math.abs(item.nominal).toLocaleString('id-ID')}
                 </span>
+                {#if item.lunas}
+                  <span class="px-1.5 py-0.5 text-[8px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 rounded">✓ Lunas</span>
+                {:else}
+                  <span class="px-1.5 py-0.5 text-[8px] font-bold bg-amber-50 text-amber-700 border border-amber-100 rounded">○ Belum Lunas</span>
+                {/if}
               </div>
             </div>
           {/each}
@@ -109,7 +109,7 @@
           <p class="text-xs text-slate-400 max-w-[200px] mt-1">Daftarkan karyawan baru terlebih dahulu.</p>
         </div>
         <button 
-          on:click={() => dispatch('addEmployee')}
+          onclick={() => onaddemployee?.()}
           class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold transition shadow-md shadow-brand-100 flex items-center gap-1.5 focus:outline-none"
         >
           <Plus class="w-4 h-4" /> Tambah Karyawan
@@ -118,7 +118,7 @@
     {:else}
       {#each employees as emp (emp.id)}
         <button 
-          on:click={() => dispatch('selectEmployee', emp.id)}
+          onclick={() => onselectemployee?.(emp.id)}
           class="w-full text-left bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:border-brand-200 active:scale-[0.99] transition-all flex justify-between items-center gap-3 focus:outline-none"
         >
           <div class="min-w-0">

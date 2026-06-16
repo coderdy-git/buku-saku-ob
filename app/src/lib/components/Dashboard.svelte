@@ -14,6 +14,7 @@
   // Import Layout
   import Header from './Header.svelte';
   import BottomNav from './BottomNav.svelte';
+  import { addToast, confirmAction } from '../uiStore.svelte.js';
 
   // Import Database Offline-First & Sync Engine
   import { db } from '../db';
@@ -24,42 +25,44 @@
     runFullSync,
     isOnline
   } from '../dbHelper';
+  import { capitalizeWords } from '../utils.js';
 
-  export let user = { nama: 'Operator', telepon: '', verified: true };
-  export let showInstallBtn = false;
+  let { user = { nama: 'Operator', telepon: '', verified: true }, showInstallBtn = false, oninstallpwa } = $props();
   
-  let activeTab = 'orders'; // orders | cashbook | calculator | attendance
-  let orderTabFilter = 'belum'; // belum | selesai
-  let belanjaTabFilter = 'troli'; // troli | riwayat
-  let activeEmployeeId = null;
+  let activeTab = $state('orders'); // orders | cashbook | calculator | attendance
+  let orderTabFilter = $state('belum'); // belum | selesai
+  let belanjaTabFilter = $state('troli'); // troli | riwayat
+  let activeEmployeeId = $state(null);
 
   // Databases (Reactive state dari IndexedDB)
-  let employees = [];
-  let orders = [];
-  let ledger = [];
-  let shoppingList = [];
-  let shoppingHistory = [];
-  let attendanceLogs = [];
-  let shoppingBudget = 500000;
+  let employees = $state([]);
+  let orders = $state([]);
+  let ledger = $state([]);
+  let shoppingList = $state([]);
+  let shoppingHistory = $state([]);
+  let attendanceLogs = $state([]);
+  let shoppingBudget = $state(500000);
 
   // Modal State
-  let isModalOpen = false;
-  let modalType = ''; // addOrder | addEmployee | payOrTopup | completeOrder
-  let selectedOrder = null;
-  let selectedEmployee = null;
+  let isModalOpen = $state(false);
+  let modalType = $state(''); // addOrder | addEmployee | payOrTopup | completeOrder
+  let selectedOrder = $state(null);
+  let selectedEmployee = $state(null);
 
   // Modal Form Fields
-  let formKaryawanId = '';
-  let formBarang = '';
-  let formTitipanStr = '';
-  let formEmpNama = '';
-  let formEmpTel = '';
-  let formEmpDepositStr = '';
-  let formRealHargaStr = '';
-  let formPayNominalStr = '';
-  let formPayType = 'TOPUP'; // TOPUP | BAYAR_HUTANG | POTONG_DEPOSIT
-  let formPayKeterangan = '';
-  let formBudgetStr = '';
+  let formKaryawanId = $state('');
+  let formBarang = $state('');
+  let formTitipanStr = $state('');
+  let formEmpNama = $state('');
+  let formEmpTel = $state('');
+  let formEmpDepositStr = $state('');
+  let formRealHargaStr = $state('');
+  let formPayNominalStr = $state('');
+  let formPayKeterangan = $state('');
+  let formBudgetStr = $state('');
+
+  // Loading State for Buttons
+  let isProcessing = $state(false);
 
   // Load Data Secara Reaktif Dari Dexie (IndexedDB)
   async function loadDataFromDexie() {
@@ -90,6 +93,7 @@
   function openModal(type, extra = null) {
     modalType = type;
     isModalOpen = true;
+    isProcessing = false;
     
     if (type === 'addOrder') {
       formKaryawanId = employees.length > 0 ? employees[0].id : '';
@@ -105,7 +109,6 @@
     } else if (type === 'payOrTopup') {
       selectedEmployee = extra;
       formPayNominalStr = '';
-      formPayType = 'TOPUP';
       formPayKeterangan = '';
     } else if (type === 'editBudget') {
       formBudgetStr = shoppingBudget.toLocaleString('id-ID');
@@ -117,6 +120,7 @@
     modalType = '';
     selectedOrder = null;
     selectedEmployee = null;
+    isProcessing = false;
   }
 
   function parseFormattedNumber(valString) {
@@ -135,120 +139,133 @@
   // Submit Buat Pesanan Baru
   async function createNewOrder() {
     if (!formKaryawanId || !formBarang) return;
-    const titipan = parseFormattedNumber(formTitipanStr);
-    
-    const newOrd = {
-      id: 'ord-' + Date.now(),
-      karyawanId: formKaryawanId,
-      barang: formBarang,
-      titipan,
-      realHarga: 0,
-      kembalian: 0,
-      status: 'BELUM_DIBELI',
-      tanggal: new Date().toISOString()
-    };
+    isProcessing = true;
+    try {
+      const titipan = parseFormattedNumber(formTitipanStr);
+      
+      const newOrd = {
+        id: 'ord-' + Date.now(),
+        karyawanId: formKaryawanId,
+        barang: capitalizeWords(formBarang),
+        titipan,
+        realHarga: 0,
+        kembalian: 0,
+        status: 'BELUM_DIBELI',
+        tanggal: new Date().toISOString()
+      };
 
-    await dbAddOrder(newOrd);
-    await loadDataFromDexie();
-    closeModal();
+      await dbAddOrder(newOrd);
+      await loadDataFromDexie();
+      closeModal();
+      addToast('Pesanan berhasil dibuat!', 'success');
+    } finally {
+      isProcessing = false;
+    }
   }
 
   // Submit Daftar Karyawan Baru
   async function createNewEmployee() {
     if (!formEmpNama || !formEmpTel) return;
-    const deposit = parseFormattedNumber(formEmpDepositStr);
+    isProcessing = true;
+    try {
+      const deposit = parseFormattedNumber(formEmpDepositStr);
 
-    const empId = 'emp-' + Date.now();
-    const newEmp = {
-      id: empId,
-      nama: formEmpNama,
-      telepon: formEmpTel,
-      deposit,
-      hutang: 0
-    };
-
-    await dbAddEmployee(newEmp);
-
-    // Catat mutasi kas jika ada setoran deposit awal
-    if (deposit > 0) {
-      const newLed = {
-        id: 'led-' + Date.now(),
-        karyawanId: empId,
-        tipe: 'TOPUP',
-        nominal: deposit,
-        keterangan: 'Setoran Deposit Awal',
-        lunas: true,
-        tanggal: new Date().toISOString()
+      const empId = 'emp-' + Date.now();
+      const newEmp = {
+        id: empId,
+        nama: capitalizeWords(formEmpNama),
+        telepon: formEmpTel,
+        deposit,
+        hutang: 0
       };
-      await db.ledger.put(newLed);
-    }
 
-    await loadDataFromDexie();
-    closeModal();
+      await dbAddEmployee(newEmp);
+
+      if (deposit > 0) {
+        const newLed = {
+          id: 'led-' + Date.now(),
+          karyawanId: empId,
+          tipe: 'TOPUP',
+          nominal: deposit,
+          keterangan: 'Setoran Deposit Awal',
+          lunas: true,
+          tanggal: new Date().toISOString()
+        };
+        await db.ledger.put(newLed);
+      }
+
+      await loadDataFromDexie();
+      closeModal();
+      addToast('Karyawan baru berhasil ditambahkan', 'success');
+    } finally {
+      isProcessing = false;
+    }
   }
 
   // Selesaikan Transaksi Pembelian Kantin
   async function completeCanteenPurchase() {
     if (!selectedOrder) return;
-    const realHarga = parseFormattedNumber(formRealHargaStr);
-    
-    selectedOrder.realHarga = realHarga;
-    const emp = employees.find(e => e.id === selectedOrder.karyawanId);
-    let newLed = null;
-
-    if (selectedOrder.titipan === 0) {
-      // Pembayaran talangan (Diberlakukan sebagai hutang)
-      selectedOrder.status = 'SELESAI';
-      if (emp) {
-        emp.hutang += realHarga;
-      }
+    isProcessing = true;
+    try {
+      const realHarga = parseFormattedNumber(formRealHargaStr);
       
-      newLed = {
-        id: 'led-' + Date.now(),
-        karyawanId: selectedOrder.karyawanId,
-        tipe: 'PESANAN',
-        nominal: -realHarga,
-        keterangan: 'Beli: ' + selectedOrder.barang,
-        lunas: false,
-        tanggal: new Date().toISOString()
-      };
-    } else {
-      // Pembayaran tunai/cash
-      const kembalian = selectedOrder.titipan - realHarga;
-      selectedOrder.kembalian = kembalian;
+      selectedOrder.realHarga = realHarga;
+      const emp = employees.find(e => e.id === selectedOrder.karyawanId);
+      let newLed = null;
 
-      if (kembalian > 0) {
-        selectedOrder.status = 'MENUNGGU_KEMBALIAN';
-      } else if (kembalian < 0) {
-        // Kekurangan cash dicatat sebagai hutang
+      if (selectedOrder.titipan === 0) {
         selectedOrder.status = 'SELESAI';
-        const deficit = Math.abs(kembalian);
         if (emp) {
-          emp.hutang += deficit;
+          emp.hutang += realHarga;
         }
-
+        
         newLed = {
           id: 'led-' + Date.now(),
           karyawanId: selectedOrder.karyawanId,
           tipe: 'PESANAN',
-          nominal: -deficit,
-          keterangan: `Kurang bayar cash: ${selectedOrder.barang} (Beli: Rp ${realHarga}, Titip: Rp ${selectedOrder.titipan})`,
+          nominal: -realHarga,
+          keterangan: 'Beli: ' + selectedOrder.barang,
           lunas: false,
           tanggal: new Date().toISOString()
         };
       } else {
-        selectedOrder.status = 'SELESAI';
-      }
-    }
+        const kembalian = selectedOrder.titipan - realHarga;
+        selectedOrder.kembalian = kembalian;
 
-    // Update States & Sync DB
-    await dbUpdateFinances(selectedOrder, emp, newLed);
-    await loadDataFromDexie();
-    closeModal();
+        if (kembalian > 0) {
+          selectedOrder.status = 'MENUNGGU_KEMBALIAN';
+        } else if (kembalian < 0) {
+          selectedOrder.status = 'SELESAI';
+          const deficit = Math.abs(kembalian);
+          if (emp) {
+            emp.hutang += deficit;
+          }
+
+          newLed = {
+            id: 'led-' + Date.now(),
+            karyawanId: selectedOrder.karyawanId,
+            tipe: 'PESANAN',
+            nominal: -deficit,
+            keterangan: `Kurang bayar cash: ${selectedOrder.barang} (Beli: Rp ${realHarga}, Titip: Rp ${selectedOrder.titipan})`,
+            lunas: false,
+            tanggal: new Date().toISOString()
+          };
+        } else {
+          selectedOrder.status = 'SELESAI';
+        }
+      }
+
+      await dbUpdateFinances(selectedOrder, emp, newLed);
+      await loadDataFromDexie();
+      closeModal();
+      addToast('Pembelian berhasil diselesaikan', 'success');
+    } finally {
+      isProcessing = false;
+    }
   }
 
   // Konfirmasi Kembalian Cash Diberikan ke Karyawan
-  async function handleReturnChange(event) {
+  async function handleReturnChange(orderData) {
     const ord = event.detail;
     const target = orders.find(o => o.id === ord.id);
     if (target) {
@@ -264,57 +281,54 @@
     const nominal = parseFormattedNumber(formPayNominalStr);
     if (nominal <= 0) return;
 
-    let newLed = null;
+    isProcessing = true;
+    try {
+      let sisaUang = nominal;
+      const hutangAwal = selectedEmployee.hutang;
+      
+      if (selectedEmployee.hutang > 0) {
+        const bayarHutang = Math.min(selectedEmployee.hutang, sisaUang);
+        selectedEmployee.hutang -= bayarHutang;
+        sisaUang -= bayarHutang;
+      }
 
-    if (formPayType === 'TOPUP') {
-      selectedEmployee.deposit += nominal;
-      newLed = {
+      if (sisaUang > 0) {
+        selectedEmployee.deposit += sisaUang;
+      }
+
+      let ket = formPayKeterangan;
+      if (!ket) {
+        if (hutangAwal > 0 && sisaUang > 0) {
+          ket = 'Lunas Hutang + Deposit';
+        } else if (hutangAwal > 0) {
+          ket = 'Bayar Hutang';
+        } else {
+          ket = 'Isi Deposit';
+        }
+      }
+
+      const newLed = {
         id: 'led-' + Date.now(),
         karyawanId: selectedEmployee.id,
         tipe: 'TOPUP',
         nominal,
-        keterangan: formPayKeterangan || 'Top Up Deposit Saldo',
+        keterangan: ket,
         lunas: true,
         tanggal: new Date().toISOString()
       };
-    } else if (formPayType === 'BAYAR_HUTANG') {
-      selectedEmployee.hutang = Math.max(0, selectedEmployee.hutang - nominal);
-      newLed = {
-        id: 'led-' + Date.now(),
-        karyawanId: selectedEmployee.id,
-        tipe: 'TOPUP', // Nominal positif masuk ledger
-        nominal,
-        keterangan: formPayKeterangan || 'Pelunasan Bayar Hutang Talangan',
-        lunas: true,
-        tanggal: new Date().toISOString()
-      };
-    } else if (formPayType === 'POTONG_DEPOSIT') {
-      // Potong saldo deposit untuk melunasi hutang talangan
-      const cutAmount = Math.min(selectedEmployee.deposit, selectedEmployee.hutang, nominal);
-      if (cutAmount > 0) {
-        selectedEmployee.deposit -= cutAmount;
-        selectedEmployee.hutang -= cutAmount;
 
-        newLed = {
-          id: 'led-' + Date.now(),
-          karyawanId: selectedEmployee.id,
-          tipe: 'PESANAN', // Nominal negatif untuk mutasi potong deposit
-          nominal: -cutAmount,
-          keterangan: 'Potong Deposit untuk Lunas Hutang',
-          lunas: true,
-          tanggal: new Date().toISOString()
-        };
-      }
+      await dbUpdateFinances(null, selectedEmployee, newLed);
+      await loadDataFromDexie();
+      closeModal();
+      addToast('Transaksi berhasil disimpan', 'success');
+    } finally {
+      isProcessing = false;
     }
-
-    await dbUpdateFinances(null, selectedEmployee, newLed);
-    await loadDataFromDexie();
-    closeModal();
   }
 
   // Generate template WhatsApp Billing
-  function handleShareWA(event) {
-    const emp = event.detail;
+  function handleShareWA(empData) {
+    const emp = empData;
     // Hitung sisa kekurangan
     const netShortage = emp.hutang - emp.deposit;
     
@@ -327,60 +341,71 @@
       itemsText += `[${cleanDate}] Beli: ${o.barang} Rp${o.realHarga.toLocaleString('id-ID')}\n`;
     });
 
-    const msg = `Berikut rincian tagihan Buku Saku OB:\n\n` +
+    const msg = `*Rincian Tagihan:*\n\n` +
                 `${itemsText}` +
                 `Total Hutang: Rp ${emp.hutang.toLocaleString('id-ID')}\n` +
                 `Total Deposit: Rp ${emp.deposit.toLocaleString('id-ID')}\n` +
                 `-----------------------------------\n` +
-                `Sisa Kekurangan Bersih: Rp ${netShortage > 0 ? netShortage.toLocaleString('id-ID') : '0'}`;
+                `*Sisa Kekurangan Bersih: Rp ${netShortage > 0 ? netShortage.toLocaleString('id-ID') : '0'}*`;
 
     const waLink = `https://wa.me/${emp.telepon}?text=${encodeURIComponent(msg)}`;
     window.open(waLink, '_blank');
   }
 
   // --- KALKULATOR TROLLEY MUTATORS ---
-  async function handleAddToTrolley(event) {
-    const item = event.detail;
+  async function handleAddToTrolley(itemData) {
+    const item = JSON.parse(JSON.stringify(event.detail));
     await db.shoppingList.put(item);
     await loadDataFromDexie();
+    addToast('Item ditambahkan ke Troli', 'success');
   }
 
-  async function handleRemoveFromTrolley(event) {
-    const id = event.detail;
+  async function handleRemoveFromTrolley(itemId) {
+    const id = itemId;
     await db.shoppingList.delete(id);
     await loadDataFromDexie();
+    addToast('Item dihapus dari Troli', 'success');
   }
 
-  async function handleCheckoutTrolley() {
+  function handleCheckoutTrolley() {
     if (shoppingList.length === 0) return;
-    const total = shoppingList.reduce((acc, i) => acc + (i.price * i.qty), 0);
-    
-    const newHistory = {
-      id: 'hist-' + Date.now(),
-      tanggal: new Date().toISOString(),
-      total,
-      items: shoppingList
-    };
-
-    await db.shoppingHistory.put(newHistory);
-    await db.shoppingList.clear(); // Reset troli
-    await loadDataFromDexie();
+    confirmAction('Selesaikan Belanja ATK?', 'Troli akan dikosongkan dan disimpan ke Riwayat.', async () => {
+      const total = shoppingList.reduce((acc, i) => acc + (i.price * i.qty), 0);
+      const newHistory = {
+        id: 'hist-' + Date.now(),
+        tanggal: new Date().toISOString(),
+        total,
+        items: JSON.parse(JSON.stringify(shoppingList))
+      };
+      await db.shoppingHistory.put(newHistory);
+      await db.shoppingList.clear();
+      await loadDataFromDexie();
+      addToast('Belanja selesai!', 'success');
+    }, 'Ya, Selesai', 'Batal');
   }
 
   // --- ABSENSI MUTATORS ---
-  async function handleCheckInOut(event) {
-    const { isCheckOut } = event.detail;
+  async function handleCheckInOut(statusObj) {
+    const { isCheckOut } = statusObj;
+    const todayISO = new Date().toISOString().substring(0, 10);
+    
+    // Ambil log terakhir hari ini
+    const todayLogs = attendanceLogs.filter(l => new Date(l.checkIn).toISOString().substring(0, 10) === todayISO);
+    const activeLog = todayLogs.sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn))[0];
     
     if (isCheckOut) {
       // Proses Check Out
-      const todayISO = new Date().toISOString().substring(0, 10);
-      const activeLog = attendanceLogs.find(l => new Date(l.checkIn).toISOString().substring(0, 10) === todayISO);
       if (activeLog) {
         activeLog.checkOut = new Date().toISOString();
-        await db.attendanceLogs.put(activeLog);
+        await db.attendanceLogs.put(JSON.parse(JSON.stringify(activeLog)));
       }
     } else {
-      // Proses Check In
+      // Proses Check In - Validasi Hanya Boleh 1x Sehari (Bypass di Dev)
+      if (activeLog && activeLog.checkOut && !import.meta.env.DEV) {
+         addToast('Anda sudah melakukan absensi hari ini!', 'error');
+         return;
+      }
+
       const newLog = {
         id: 'log-' + Date.now(),
         checkIn: new Date().toISOString(),
@@ -397,6 +422,29 @@
     const event = new CustomEvent('logout');
     window.dispatchEvent(event);
   }
+  import { supabase } from '../supabaseClient.js';
+
+  async function handleDevWipe() {
+    if (!import.meta.env.DEV) return;
+    
+    confirmAction('Reset Semua Data?', 'Ini hanya untuk DEV. Semua Karyawan, Pesanan, Buku Kas, dll akan dihapus dari Supabase.', async () => {
+      // 1. Wipe Supabase (RLS automatically restricts it to this user's operator_id)
+      await supabase.from('employees').delete().neq('id', 'dummy');
+      await supabase.from('shopping_history').delete().neq('id', 'dummy');
+      await supabase.from('attendance_logs').delete().neq('id', 'dummy');
+      
+      // 2. Wipe Local Dexie
+      await db.employees.clear();
+      await db.orders.clear();
+      await db.ledger.clear();
+      await db.shoppingHistory.clear();
+      await db.attendanceLogs.clear();
+      await db.shoppingList.clear();
+      
+      // 3. Reload Page
+      window.location.reload();
+    }, 'Ya, Hapus', 'Batal');
+  }
 </script>
 
 <div class="flex flex-col min-h-screen bg-slate-50 w-full relative">
@@ -404,8 +452,9 @@
   <Header 
     userName={user.nama}
     showInstallBtn={showInstallBtn}
-    on:installPwa={() => dispatch('installPwa')}
-    on:logout={handleLogout}
+    oninstallpwa={() => oninstallpwa?.()}
+    onlogout={handleLogout}
+    ondevwipe={handleDevWipe}
   />
 
   <!-- Main Scrollable Dashboard Content -->
@@ -416,10 +465,10 @@
           orders={orders}
           employees={employees}
           orderTabFilter={orderTabFilter}
-          on:filter={(e) => orderTabFilter = e.detail}
-          on:addOrder={() => openModal('addOrder')}
-          on:completeOrder={(e) => openModal('completeOrder', e.detail)}
-          on:returnChange={handleReturnChange}
+          onfilter={(val) => orderTabFilter = val}
+          onaddorder={() => openModal('addOrder')}
+          oncompleteorder={(val) => openModal('completeOrder', val)}
+          onreturnchange={handleReturnChange}
         />
       </div>
     {:else if activeTab === 'cashbook'}
@@ -428,11 +477,11 @@
           employees={employees}
           ledger={ledger}
           activeEmployeeId={activeEmployeeId}
-          on:back={() => activeEmployeeId = null}
-          on:selectEmployee={(e) => activeEmployeeId = e.detail}
-          on:addEmployee={() => openModal('addEmployee')}
-          on:shareWA={handleShareWA}
-          on:payOrTopup={(e) => openModal('payOrTopup', e.detail)}
+          onback={() => activeEmployeeId = null}
+          onselectemployee={(val) => activeEmployeeId = val}
+          onaddemployee={() => openModal('addEmployee')}
+          onsharewa={handleShareWA}
+          onpayortopup={(val) => openModal('payOrTopup', val)}
         />
       </div>
     {:else if activeTab === 'calculator'}
@@ -442,18 +491,18 @@
           shoppingBudget={shoppingBudget}
           belanjaTabFilter={belanjaTabFilter}
           shoppingHistory={shoppingHistory}
-          on:filter={(e) => belanjaTabFilter = e.detail}
-          on:addToTrolley={handleAddToTrolley}
-          on:removeItem={handleRemoveFromTrolley}
-          on:checkout={handleCheckoutTrolley}
-          on:editBudget={() => openModal('editBudget')}
+          onfilter={(val) => belanjaTabFilter = val}
+          onaddtotrolley={handleAddToTrolley}
+          onremoveitem={handleRemoveFromTrolley}
+          oncheckout={handleCheckoutTrolley}
+          oneditbudget={() => openModal('editBudget')}
         />
       </div>
     {:else if activeTab === 'attendance'}
       <div in:fade={{ duration: 150 }} class="flex flex-col flex-grow">
         <AbsensiTab 
           attendanceLogs={attendanceLogs}
-          on:checkInOut={handleCheckInOut}
+          oncheckinout={handleCheckInOut}
         />
       </div>
     {/if}
@@ -462,7 +511,7 @@
   <!-- Floating Action Button (FAB) -->
   {#if activeTab === 'orders' || (activeTab === 'cashbook' && !activeEmployeeId)}
     <button 
-      on:click={() => openModal(activeTab === 'orders' ? 'addOrder' : 'addEmployee')}
+      onclick={() => openModal(activeTab === 'orders' ? 'addOrder' : 'addEmployee')}
       class="absolute bottom-20 right-4 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg shadow-indigo-900/30 active:scale-95 transition-all z-30 focus:outline-none"
     >
       <Plus class="w-7 h-7" />
@@ -472,16 +521,16 @@
   <!-- Bottom Navigation Bar -->
   <BottomNav 
     activeTab={activeTab}
-    on:select={(e) => { activeTab = e.detail; activeEmployeeId = null; }}
+    onselect={(val) => { activeTab = val; activeEmployeeId = null; }}
   />
 
   <!-- MODAL DIALOGS OVERLAYS (Svelte Custom Sheet Modal) -->
   {#if isModalOpen}
-    <div class="fixed inset-0 bg-black/40 z-50 flex items-end justify-center backdrop-blur-sm" on:click={closeModal}>
+    <div class="fixed inset-0 bg-black/40 z-50 flex items-end justify-center backdrop-blur-sm" onclick={closeModal}>
       <!-- Sheet Content Container -->
       <div 
         class="bg-white rounded-t-3xl w-full max-w-[480px] p-6 space-y-4 pb-10 shadow-2xl transform translate-y-0 transition-transform duration-300"
-        on:click|stopPropagation
+        onclick={(e) => { e.stopPropagation(); }}
       >
         <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-1"></div>
         
@@ -489,7 +538,7 @@
           <!-- Form Buat Pesanan Baru -->
           <div class="flex justify-between items-center">
             <h3 class="font-extrabold text-slate-900 text-sm">Buat Pesanan Baru</h3>
-            <button on:click={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
+            <button onclick={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -511,13 +560,18 @@
               <input 
                 type="text" 
                 value={formTitipanStr} 
-                on:input={(e) => formTitipanStr = formatNumberInput(e.target.value)} 
+                oninput={(e) => formTitipanStr = formatNumberInput(e.target.value)} 
                 placeholder="Masukkan jika bayar tunai di depan" 
                 class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" 
               />
             </div>
-            <button on:click={createNewOrder} class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 focus:outline-none">
-              Buat Pesanan
+            <button onclick={createNewOrder} disabled={isProcessing} class="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 flex justify-center items-center gap-2 focus:outline-none">
+              {#if isProcessing}
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Memproses...
+              {:else}
+                Buat Pesanan
+              {/if}
             </button>
           </div>
 
@@ -525,7 +579,7 @@
           <!-- Form Tambah Karyawan Baru -->
           <div class="flex justify-between items-center">
             <h3 class="font-extrabold text-slate-900 text-sm">Daftarkan Karyawan Baru</h3>
-            <button on:click={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
+            <button onclick={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -543,13 +597,18 @@
               <input 
                 type="text" 
                 value={formEmpDepositStr}
-                on:input={(e) => formEmpDepositStr = formatNumberInput(e.target.value)}
+                oninput={(e) => formEmpDepositStr = formatNumberInput(e.target.value)}
                 placeholder="Contoh: 100.000" 
                 class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" 
               />
             </div>
-            <button on:click={createNewEmployee} class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 focus:outline-none">
-              Daftarkan Karyawan
+            <button onclick={createNewEmployee} disabled={isProcessing} class="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 flex justify-center items-center gap-2 focus:outline-none">
+              {#if isProcessing}
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Memproses...
+              {:else}
+                Daftarkan Karyawan
+              {/if}
             </button>
           </div>
 
@@ -557,7 +616,7 @@
           <!-- Form input harga asli pasca beli dari kantin -->
           <div class="flex justify-between items-center">
             <h3 class="font-extrabold text-slate-900 text-sm">Selesaikan Pembelian</h3>
-            <button on:click={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
+            <button onclick={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -573,13 +632,18 @@
               <input 
                 type="text" 
                 value={formRealHargaStr} 
-                on:input={(e) => formRealHargaStr = formatNumberInput(e.target.value)} 
+                oninput={(e) => formRealHargaStr = formatNumberInput(e.target.value)} 
                 placeholder="Harga sesuai struk kantin" 
                 class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none font-bold" 
               />
             </div>
-            <button on:click={completeCanteenPurchase} class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-100 focus:outline-none">
-              Beli & Konfirmasi
+            <button onclick={completeCanteenPurchase} disabled={isProcessing} class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-100 flex justify-center items-center gap-2 focus:outline-none">
+              {#if isProcessing}
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Memproses...
+              {:else}
+                Beli & Konfirmasi
+              {/if}
             </button>
           </div>
 
@@ -587,27 +651,17 @@
           <!-- Form TopUp, Bayar Talangan, Potong Deposit -->
           <div class="flex justify-between items-center">
             <h3 class="font-extrabold text-slate-900 text-sm">Bayar / Top Up Saldo</h3>
-            <button on:click={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
+            <button onclick={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
           <div class="space-y-3">
             <div>
-              <label class="text-[10px] font-bold text-slate-400 block mb-1">Tipe Transaksi</label>
-              <select bind:value={formPayType} class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none">
-                <option value="TOPUP">Top Up Deposit Baru</option>
-                <option value="BAYAR_HUTANG">Bayar Hutang Talangan</option>
-                {#if selectedEmployee.deposit > 0 && selectedEmployee.hutang > 0}
-                  <option value="POTONG_DEPOSIT">Potong Deposit untuk Hutang</option>
-                {/if}
-              </select>
-            </div>
-            <div>
               <label class="text-[10px] font-bold text-slate-400 block mb-1">Nominal Transaksi (Rp)</label>
               <input 
                 type="text" 
                 value={formPayNominalStr} 
-                on:input={(e) => formPayNominalStr = formatNumberInput(e.target.value)} 
+                oninput={(e) => formPayNominalStr = formatNumberInput(e.target.value)} 
                 placeholder="Masukkan nominal" 
                 class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none font-bold" 
               />
@@ -616,8 +670,13 @@
               <label class="text-[10px] font-bold text-slate-400 block mb-1">Keterangan Tambahan</label>
               <input type="text" bind:value={formPayKeterangan} placeholder="Contoh: Bayar lunas Nasi Uduk" class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none" />
             </div>
-            <button on:click={submitPaymentOrTopup} class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 focus:outline-none">
-              Simpan Transaksi
+            <button onclick={submitPaymentOrTopup} disabled={isProcessing} class="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-lg shadow-brand-100 flex justify-center items-center gap-2 focus:outline-none">
+              {#if isProcessing}
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Memproses...
+              {:else}
+                Simpan Transaksi
+              {/if}
             </button>
           </div>
           
@@ -625,7 +684,7 @@
           <!-- Form Edit Budget Limit Belanja -->
           <div class="flex justify-between items-center">
             <h3 class="font-extrabold text-slate-900 text-sm">Ubah Limit Budget Belanja</h3>
-            <button on:click={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
+            <button onclick={closeModal} class="text-slate-400 hover:text-slate-600 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -635,13 +694,13 @@
               <input 
                 type="text" 
                 value={formBudgetStr} 
-                on:input={(e) => formBudgetStr = formatNumberInput(e.target.value)} 
+                oninput={(e) => formBudgetStr = formatNumberInput(e.target.value)} 
                 placeholder="Contoh: 1.000.000" 
                 class="w-full p-2.5 bg-slate-50 text-xs rounded-lg border border-slate-200 focus:outline-none font-bold text-center text-lg" 
               />
             </div>
             <button 
-              on:click={() => {
+              onclick={() => {
                 const limit = parseFormattedNumber(formBudgetStr);
                 if (limit > 0) {
                   localStorage.setItem('ob_budget', limit.toString());

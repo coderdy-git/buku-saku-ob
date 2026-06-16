@@ -7,20 +7,23 @@
   import Register from './lib/components/Register.svelte';
   import Otp from './lib/components/Otp.svelte';
   import Dashboard from './lib/components/Dashboard.svelte';
+  import ToastContainer from './lib/components/ui/ToastContainer.svelte';
+  import ConfirmDialog from './lib/components/ui/ConfirmDialog.svelte';
+  import { addToast, confirmAction } from './lib/uiStore.svelte.js';
 
   // State router halaman global
-  let currentPage = 'splash'; // splash | landing | login | register | otp | dashboard
+  let currentPage = $state('splash'); // splash | landing | login | register | otp | dashboard
   
   // Data sesi user sementara
-  let user = {
+  let user = $state({
     nama: '',
     telepon: '',
     verified: false
-  };
+  });
 
   // State PWA Install Prompt
-  let deferredPrompt = null;
-  let showInstallBtn = false;
+  let deferredPrompt = $state(null);
+  let showInstallBtn = $state(false);
 
   // Pemicu perpindahan halaman
   function navigate(page) {
@@ -28,9 +31,10 @@
   }
 
   // Menangani kesuksesan autentikasi (Login/Register)
-  function handleAuthSuccess(event) {
-    user = event.detail;
+  function handleAuthSuccess(userData) {
+    user = userData;
     navigate('otp');
+    addToast('Silakan verifikasi OTP Anda', 'info');
   }
 
   // Menangani kesuksesan verifikasi OTP
@@ -38,13 +42,17 @@
     user.verified = true;
     localStorage.setItem('ob_session', JSON.stringify(user));
     navigate('dashboard');
+    addToast('Login Berhasil!', 'success');
   }
 
   // Menangani Logout Global
   function handleLogout() {
-    localStorage.removeItem('ob_session');
-    user = { nama: '', telepon: '', verified: false };
-    navigate('landing');
+    confirmAction('Keluar Akun', 'Apakah Anda yakin ingin keluar?', () => {
+      localStorage.removeItem('ob_session');
+      user = { nama: '', telepon: '', verified: false };
+      navigate('landing');
+      addToast('Berhasil keluar akun', 'info');
+    });
   }
 
   // Menjalankan instalasi PWA
@@ -99,6 +107,8 @@
   });
 </script>
 
+<ToastContainer />
+<ConfirmDialog />
 <main class="w-full min-h-screen flex flex-col relative bg-white">
   {#if currentPage === 'splash'}
     <!-- SPLASH SCREEN VIEW -->
@@ -133,13 +143,13 @@
 
       <div class="flex flex-col gap-3">
         <button 
-          on:click={() => navigate('login')} 
+          onclick={() => navigate('login')} 
           class="w-full py-3 bg-brand-600 text-white font-medium rounded-xl hover:bg-brand-700 active:scale-[0.98] transition-all text-sm focus:outline-none shadow-md shadow-brand-100"
         >
           Masuk Sekarang
         </button>
         <button 
-          on:click={() => navigate('register')} 
+          onclick={() => navigate('register')} 
           class="w-full py-3 bg-slate-50 text-slate-700 font-medium rounded-xl hover:bg-slate-100 active:scale-[0.98] transition-all text-sm focus:outline-none border border-slate-200"
         >
           Daftar Akun Baru
@@ -150,16 +160,16 @@
     <!-- LOGIN VIEW -->
     <div in:fade={{ duration: 200 }} class="flex-grow">
       <Login 
-        on:back={() => navigate('landing')} 
-        on:success={handleAuthSuccess}
+        onback={() => navigate('landing')} 
+        onsuccess={handleAuthSuccess}
       />
     </div>
   {:else if currentPage === 'register'}
     <!-- REGISTER VIEW -->
     <div in:fade={{ duration: 200 }} class="flex-grow">
       <Register 
-        on:back={() => navigate('landing')} 
-        on:success={handleAuthSuccess}
+        onback={() => navigate('landing')} 
+        onsuccess={handleAuthSuccess}
       />
     </div>
   {:else if currentPage === 'otp'}
@@ -167,8 +177,8 @@
     <div in:fade={{ duration: 200 }} class="flex-grow">
       <Otp 
         phone={user.telepon} 
-        on:back={() => navigate('landing')} 
-        on:success={handleOtpSuccess}
+        onback={() => navigate('landing')} 
+        onsuccess={handleOtpSuccess}
       />
     </div>
   {:else if currentPage === 'dashboard'}
@@ -177,7 +187,7 @@
       <Dashboard 
         user={user}
         showInstallBtn={showInstallBtn}
-        on:installPwa={triggerPwaInstall}
+        oninstallpwa={triggerPwaInstall}
       />
     </div>
   {/if}
@@ -190,4 +200,3 @@
     100% { transform: translateX(100%); }
   }
 </style>
-

@@ -1,34 +1,31 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
   // Import Icon resmi Lucide
   import { ClipboardX, Plus, Check } from '@lucide/svelte';
   
-  const dispatch = createEventDispatcher();
-  
-  export let orders = [];
-  export let employees = [];
-  export let orderTabFilter = 'belum'; // belum | selesai
+  let { orders = [], employees = [], orderTabFilter = 'belum', onfilter, onaddorder, oncompleteorder, onreturnchange } = $props();
 
-  $: listData = orderTabFilter === 'belum' 
+  // Use Map for O(1) employee name lookups
+  let employeeMap = $derived(new Map(employees.map(e => [e.id, e])));
+
+  let listData = $derived(orderTabFilter === 'belum' 
     ? orders.filter(o => o.status === 'BELUM_DIBELI' || o.status === 'MENUNGGU_KEMBALIAN')
-    : orders.filter(o => o.status === 'SELESAI');
+    : orders.filter(o => o.status === 'SELESAI'));
 
   function getEmployeeName(karyawanId) {
-    const emp = employees.find(e => e.id === karyawanId);
-    return emp ? emp.nama : 'Unknown';
+    return employeeMap.get(karyawanId)?.nama ?? 'Unknown';
   }
 </script>
 
 <!-- Filter Tabs -->
 <div class="flex bg-slate-200 p-0.5 rounded-xl text-xs font-bold text-slate-500 mb-4">
   <button 
-    on:click={() => dispatch('filter', 'belum')} 
+    onclick={() => onfilter?.('belum')} 
     class="flex-1 py-2 rounded-lg transition-all {orderTabFilter === 'belum' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}"
   >
     Belum Dibeli ({orders.filter(o => o.status === 'BELUM_DIBELI' || o.status === 'MENUNGGU_KEMBALIAN').length})
   </button>
   <button 
-    on:click={() => dispatch('filter', 'selesai')} 
+    onclick={() => onfilter?.('selesai')} 
     class="flex-1 py-2 rounded-lg transition-all {orderTabFilter === 'selesai' ? 'bg-white text-slate-900 shadow-sm' : 'hover:text-slate-800'}"
   >
     Selesai ({orders.filter(o => o.status === 'SELESAI').length})
@@ -51,7 +48,7 @@
       </div>
       {#if orderTabFilter === 'belum'}
         <button 
-          on:click={() => dispatch('addOrder')}
+          onclick={() => onaddorder?.()}
           class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold transition shadow-md shadow-indigo-100 flex items-center gap-1.5 focus:outline-none hover:bg-indigo-700"
         >
           <Plus class="w-4 h-4" /> Buat Pesanan
@@ -77,7 +74,7 @@
           {/if}
           <div class="flex justify-end pt-2 border-t border-slate-100">
             <button 
-              on:click={() => dispatch('completeOrder', ord)} 
+              onclick={() => oncompleteorder?.(ord)} 
               class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-all focus:outline-none"
             >
               Beli & Selesai
@@ -99,7 +96,7 @@
           </div>
           <div class="flex justify-end pt-1.5 border-t border-slate-100">
             <button 
-              on:click={() => dispatch('returnChange', ord)} 
+              onclick={() => onreturnchange?.(ord)} 
               class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 focus:outline-none"
             >
               <Check class="w-3.5 h-3.5" /> Kembalian Sudah Diberikan

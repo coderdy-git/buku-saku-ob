@@ -1,16 +1,18 @@
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
+  import { formatPhoneWA } from '../utils.js';
+  import { supabase } from '../supabaseClient.js';
   
-  const dispatch = createEventDispatcher();
+  let { onsuccess, onback } = $props();
   
-  let phone = '';
-  let pin = '';
-  let errorMsg = '';
-  let loading = false;
+  let phone = $state('');
+  let pin = $state('');
+  let errorMsg = $state('');
+  let loading = $state(false);
 
   // Rate Limiter State
-  let attemptCount = 0;
-  let lockoutTimeLeft = 0;
+  let attemptCount = $state(0);
+  let lockoutTimeLeft = $state(0);
   let timerInterval;
 
   // Cek status lockout saat komponen dimuat
@@ -22,6 +24,11 @@
         startLockoutTimer(remaining);
       }
     }
+  });
+
+  // Fix memory leak: clear interval on destroy
+  onDestroy(() => {
+    if (timerInterval) clearInterval(timerInterval);
   });
 
   function startLockoutTimer(seconds) {
@@ -60,41 +67,63 @@
     loading = true;
     errorMsg = '';
 
-    // Simulasi Login (Bypass verifikasi Supabase Auth untuk sementara)
-    setTimeout(() => {
-      loading = false;
-      // Simulasi validasi PIN (misal: 123456)
-      if (pin === '123456') {
-        attemptCount = 0;
-        localStorage.removeItem('ob_lockout_until');
-        
-        const userData = {
-          nama: 'Office Boy Operator',
-          telepon: '62' + phone,
-          verified: false
-        };
-        localStorage.setItem('ob_session', JSON.stringify(userData));
-        dispatch('success', userData);
-      } else {
+    try {
+      const formattedPhone = formatPhoneWA(phone);
+      const email = `${formattedPhone}@bukusakuob.local`;
+      
+      // Login via Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: pin
+      });
+
+      if (error) {
         attemptCount += 1;
         if (attemptCount >= 3) {
-          const lockoutDuration = 60; // Kunci selama 60 detik
+          const lockoutDuration = 60;
           const expireTime = Date.now() + (lockoutDuration * 1000);
           localStorage.setItem('ob_lockout_until', expireTime.toString());
           errorMsg = 'Terlalu banyak percobaan salah. Akun dikunci selama 60 detik.';
           startLockoutTimer(lockoutDuration);
         } else {
-          errorMsg = `PIN salah. Sisa percobaan: ${3 - attemptCount}`;
+          errorMsg = 'Nomor HP atau PIN salah.';
         }
+        loading = false;
+        return;
       }
-    }, 1000);
+
+      // Fetch nama from operators table
+      const { data: opData } = await supabase
+        .from('operators')
+        .select('nama')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      // Success
+      attemptCount = 0;
+      localStorage.removeItem('ob_lockout_until');
+      
+      const userData = {
+        id: data.user.id,
+        nama: opData ? opData.nama : 'Operator',
+        telepon: formattedPhone,
+        verified: false
+      };
+      // ob_session will be saved in App.svelte after OTP success
+      onsuccess?.(userData);
+
+    } catch (e) {
+      errorMsg = 'Koneksi ke server gagal.';
+    } finally {
+      loading = false;
+    }
   }
 </script>
 
 <div class="flex-grow flex flex-col justify-between p-8 bg-white h-full">
   <!-- Header back navigation -->
   <div>
-    <button on:click={() => dispatch('back')} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-2 mb-8 focus:outline-none">
+    <button onclick={() => onback?.()} class="flex items-center text-slate-500 hover:text-slate-800 transition-colors py-2 mb-8 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
       </svg>
@@ -147,7 +176,7 @@
   <!-- Action Button -->
   <div class="mt-8">
     <button 
-      on:click={handleLogin}
+      onclick={handleLogin}
       disabled={loading || lockoutTimeLeft > 0}
       class="w-full py-3 bg-brand-600 text-white font-medium rounded-xl hover:bg-brand-700 active:scale-[0.98] transition-all text-sm focus:outline-none shadow-md shadow-brand-100 flex items-center justify-center gap-2 disabled:bg-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
     >
